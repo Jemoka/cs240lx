@@ -1,7 +1,6 @@
 # Makefile to build or clean all labs.
 SUBDIRS += 0-pi-setup 
-#SUBDIRS += 1-mailboxes
-#SUBDIRS += 2-dynamic-code-gen
+SUBDIRS += 1-dynamic-code-gen
 #SUBDIRS += 3-ir
 #SUBDIRS += 4-jit-derive
 #SUBDIRS += 5-malloc+gc

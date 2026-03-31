@@ -9,12 +9,15 @@ Overview:
     since there are people that haven't taken 140e.  The latter portion
     of the class speeds up.
 
-Possible labs, many more TBA (note: these aren't checked in yet):
-   - [1-mailboxes](1-mailboxes): using the GPU mailbox interface
-     to do fun hacks such as overclocking the pi.
-   - [2-dynamic-code-gen](2-dynamic-code-gen/): how 
+
+Labs:
+   - [0-pi-setup](0-pi-setup/): pi setup.
+   - [1-dynamic-code-gen](1-dynamic-code-gen/): how 
      to generate executable machine code at runtime and how to 
      use this trick to do neat stuff.  
+
+
+Possible labs, many more TBA (note: these aren't checked in yet):
    - [3-ir](3-ir): simple IR remote control reverse engineering.
    - [4-jit-derive](4-jit-derive): reverse engineer machine code encodings
      using the assembler.
