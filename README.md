@@ -1,45 +1,22 @@
-## CS240lx, Spr 2026 (rm: Y2E2-111 6pm)
+## CS240lx Spr'26 (Y2E2-111 530pm)
 
------------------------------------------------------------------
-### tl;dr:  getting setup.
+This is a implementation-heavy, lab-based class.  We assume 140e as
+a baseline and use this knowledge as a springboard to advance quickly
+through a set of powerful, useful techniques that even many advanced
+practioners don't know.
 
-  - get the class repo:
+Like 140e you'll write custom code from scratch for the widely-used,
+ARM-based raspberry pi; our code will run "bare-metal" without an
+operating system, which means we can do interesting things without
+constantly fighting with a lumbering OS that cannot get out of its
+own way.
 
-        git clone git@github.com:dddrrreee/cs240lx-26spr.git
+The course workload is significant, but we aim to not waste your
+time. CS140E is strongly encouraged as a prerequisite, but a sufficiently
+talented and motivated implementor can make up for its lack (as
+calibration we usually have two or three people per year do this route).
 
-  - define the `CS240LX_2026_PATH` environment variable to 
-    point to where you put the class repo.  
-
-        # for tcsh in .tcshr
-        setenv CS240LX_2026_PATH <absolute path to your repo>
-
-        # for bash (in .bashrc or similar)
-        export CS240LX_2026_PATH=<absolute path to your repo>
-
-  - check that everything worked: plug in your pi, and run hello:
-
-        % pwd
-        /home/engler/class/cs240lx-26spr
-        % cd labs/0-pi-setup
-        % make
-
-        ... alot of stuff ...
-        listening on ttyusb=</dev/ttyUSB0>
-        hello world from the pi
-        DONE!!!
-        
-        Saw done
-
-  - [look at the labs](./labs/README.md)
-  - write code!
-
------------------------------------------------------------------
-### Overview
-
-  - If you liked 140e, consider taking cs240lx.
-  - It's fun.
-  - we have record enrollment so by the birthday paradox 
-    / pigeon hole principle, your fav people will be there.
+### 240lx vs 140e 
 
 Same rough format: 
   - still 2 days a week.
@@ -47,10 +24,8 @@ Same rough format:
   - still pizza.
 
 Contents:
-  - cool tricks I picked up over 3+ decades. or seem not well covered.
-  - depends alot on what people are interested in.  can be
-    OS heavy, or more device heavy, or more project heavy
-    depending.  let us know what kind of stuff you are into.
+  - Various cool tricks from 3+ decades of low level code.
+  - Depends alot on what people are interested in.  
   - Probably at least one new board (pico, different riscv).
 
 Differences:
@@ -63,10 +38,17 @@ Differences:
   - usually has the people who find 140e fun (+/-).
   - the final projects are wild.
 
-Several old, partially overlapping offerings:
+Older versions:
   - [cs240lx-22](https://github.com/dddrrreee/cs240lx-22spr/tree/main/labs)
   - [cs240lx-23](https://github.com/dddrrreee/cs240lx-23spr/tree/main/labs)
   - [cs240lx-25](https://github.com/dddrrreee/cs240lx-25spr/tree/main/labs)
+
+
+Alot of your favorite staff!
+  - Head TA: Joseph Shetaye (rockets, booms, winning bets)
+  - Maximilien Cura (Rust + insane hacks)
+  - Aditya Sriram (ox64 riscv + bass)
+  - Dawson Engler (sup)
 
 ---------------------------------------------------------------
 ### Class rules: no llm usage, no late labs.
@@ -107,45 +89,7 @@ ahead is unclear other than the neon glare of what has not worked well.
 
 -----------------------------------------------------------------
 
-This is a implementation-heavy, lab-based class that will cover similar
-topics as CS240 --- threads, virtual memory, file systems and distributed
-systems --- but by writing code versus discussing papers. After taking an
-initial operating systems course you are often left in the odd situation
-of having spent significant time getting the background knowledge needed
-to do interesting actions, but not being left with enough time to actually
-do them. This course attacks this problem by assuming basic knowledge and
-using it as a springboard to advance quickly through a set of powerful,
-useful techniques that even advanced practioners can be ignorant of.
-
-We will write custom code from scratch for the widely-used, ARM-based
-raspberry pi; our code will run "bare-metal" without an operating system,
-which means we can do interesting things without constantly fighting
-with a lumbering OS that cannot get out of its own way.
-
-By combining research insights (many unpublished) and our our lightweight
-bare-metal code we will be in the unusual position of having foundational
-abilities that most people have assumed are in-practice impossible. As
-one example, we will implement fast, flexible exception handling and then
-use this ability to build a variety of tools that find race conditions,
-check code correctness, and memory corruption. By using exceptions rather
-than binary rewriting we can build tools that find similar errors as
-Purify / Valgrind, but can be implemented in merely hundreds rather than
-hundreds of thousands of lines of code; our tools will also be faster
-and more extensible.
-
-The course workload is significant, but we aim to not waste your
-time. CS140E is strongly encouraged as a prerequisite, but a sufficiently
-talented and motivated implementor can make up for its lack (as calibration
-we usually have two or three people per year do this route).
-
 ### Possible labs
-
-Inspired by 140e final projects:
-  - Stuart doing some kind of elf loader.
-  - Aditya, Rohan, Sebastian: an ox64 lab?
-  - Asanshay and Rohan: GPU + fractals for speedup.
-  - Max: riscv + ppp + smi + rust?
-  - others?
 
 Always do: Generate executable code at runtime
   - even more low level than inline assembly.
@@ -184,8 +128,6 @@ And a few different communication protocols:
   - over light and camera (?)
   - lora?
 
-
-
 Device labs are fun.  So we do those too:
   - accelerometer, gyro
   - lidar
@@ -223,19 +165,38 @@ Possible other stuf:
   - e.g., maybe some other languages (rust?  zig?)
   - static bug finder.
 
----------------------------------------------------------------------------
-### What we need
+-----------------------------------------------------------------
+### tl;dr:  getting setup.
 
-To get a better feel or what the labs look like, you can look at:
-  - [2023's repo](https://github.com/dddrrreee/cs240lx-23spr/tree/main/labs)
-  - [2022's repo](https://github.com/dddrrreee/cs240lx-22spr/tree/main/labs)
+  - get the class repo:
 
-There are way more possible labs than class slots so if you can please
-look through these and let us know some rough preferences.
+        git clone git@github.com:dddrrreee/cs240lx-26spr.git
 
-In addition, let us know:
-  - stuff missing from 140e.
-  - stuff that you saw in the wild that looks cool.
+  - define the `CS240LX_2026_PATH` environment variable to 
+    point to where you put the class repo.  
+
+        # for tcsh in .tcshr
+        setenv CS240LX_2026_PATH <absolute path to your repo>
+
+        # for bash (in .bashrc or similar)
+        export CS240LX_2026_PATH=<absolute path to your repo>
+
+  - check that everything worked: plug in your pi, and run hello:
+
+        % pwd
+        /home/engler/class/cs240lx-26spr
+        % cd labs/0-pi-setup
+        % make
+
+        ... alot of stuff ...
+        listening on ttyusb=</dev/ttyUSB0>
+        hello world from the pi
+        DONE!!!
+        
+        Saw done
+
+  - [look at the labs](./labs/README.md)
+  - write code!
 
 <p align="center">
 <img src="labs/lab-memes/chaotic-study.jpg" width="400" />
