@@ -1,0 +1,15 @@
+// <rpi.h> has definitions for <putk> and <clean_reboot>.
+// <libpi.a> has their implementations.
+#include "rpi.h"
+
+int ret4(void) { 
+    return 4;
+}
+
+void notmain(void) {
+    uint32_t code[4] = {
+        0
+    };
+
+    printk("hello\n");
+}
