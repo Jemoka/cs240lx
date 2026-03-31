@@ -25,7 +25,8 @@ Same rough format:
 
 Contents:
   - Various cool tricks from 3+ decades of low level code.
-  - Depends alot on what people are interested in.  
+  - Devices, speed, dynamic tools, code generation, OS tricks.  
+    - Depends alot on what people are interested in.  
   - Probably at least one new board (pico, different riscv).
 
 Differences:
@@ -174,9 +175,6 @@ Possible other stuf:
 
   - define the `CS240LX_2026_PATH` environment variable to 
     point to where you put the class repo.  
-
-        # for tcsh in .tcshr
-        setenv CS240LX_2026_PATH <absolute path to your repo>
 
         # for bash (in .bashrc or similar)
         export CS240LX_2026_PATH=<absolute path to your repo>
