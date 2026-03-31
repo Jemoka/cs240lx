@@ -236,6 +236,14 @@ declare success, at least for this lab.
 ----------------------------------------------------------------------------
 ### Part 4: Runtime inlining `4-runtime-inline`
 
+***NOTE:***
+  - If you see this, do a pull or come talk to us: there's a related
+    but maybe more useful hack to do instead (am writing it).
+  - If you see this, do a pull or come talk to us: there's a related
+    but maybe more useful hack to do instead (am writing it).
+  - If you see this, do a pull or come talk to us: there's a related
+    but maybe more useful hack to do instead (am writing it).
+
 Modern C compilers generally only inline routines that are in the same
 file (or included header file).  And even then they may only do it if it
 the definition appears before the use.

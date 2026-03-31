@@ -45,11 +45,19 @@ void notmain() {
 
     // change the code to return 10
     printk("about to make code return 10\n");
+    asm volatile(".align 5");
     code[0] = 0xe3a0000a; // mov r0, #10
 
-    asm volatile ("nop");
-    asm volatile ("nop");
     // Q: experiment w/ deleting these: what is going on?
+    // Q: how many can we delete? why?
+    asm volatile ("nop"); // 0
+    asm volatile ("nop"); // 1
+    asm volatile ("nop"); // 2
+    asm volatile ("nop"); // 3
+    asm volatile ("nop"); // 4
+    asm volatile ("nop"); // 5
+    asm volatile ("nop"); // 6
+    asm volatile ("nop"); // 7
 
     x = fp();
 	printk("fp() = %d [should be 10]\n", x);
@@ -63,9 +71,8 @@ void notmain() {
         // Q: how do you set them to return a negative value?
         code[0] = (code[0] & ~0xff) | u;
 
-        // Q: if delete these?
-        asm volatile ("nop");
-
+        // Q: if delete this?  how different from nops?
+        asm volatile(".align 5");
         assert(fp() == u);
     }
     printk("passed %d tests!\n", N);
