@@ -10,6 +10,7 @@
 //         it.
 #include "rpi.h"
 #include "rpi-interrupts.h"
+#include "bit-support.h"
 
 // we use this to catch if you jump off by one
 static void guard1(void) { asm volatile ("bkpt"); }
@@ -31,29 +32,70 @@ static void guard3(void) { asm volatile ("bkpt"); }
 // the routines to implement.
 static inline uint32_t armv6_push(int reg) {
     assert(reg<16);
-    todo("return the machine code to push{reg}\n");
+
+    // (str fp, [sp, #-4]!)
+    // 0 1 0 1 0 0 1 0 Rn Rd offset_12
+    //          16-19 _|  |_ 12-15  |_ 0-11
+    unsigned base = 0b0101001000000000000000000000;
+
+    base = bits_set(base, 16, 19, 13); // sp is Rn
+    base = bits_set(base, 12, 15, reg); // reg is Rd
+    base = bits_set(base, 0, 11, 4); // offset is 4
+
+    return base;
 }
 static inline uint32_t armv6_pop(int reg) {
-    assert(reg<16);
-    todo("return the machine code to pop{reg}\n");
+    assert(reg<16);             /*  */
+
+    // (ldr fp, [sp], #4)
+    // 0 1 0 0 1 0 0 1 Rn Rd 0 0 0 0 0 0 0 0 Rm
+    //          16-19 _|  |_ 12-15           |_ 0-3
+
+    unsigned base = 0b0100100100000000000000000000;
+
+    base = bits_set(base, 16, 19, 13); // sp is Rn
+    base = bits_set(base, 12, 15, reg); // reg is Rd
+    base = bits_set(base, 0, 3, 4); // offset is 4
+    
+    return base;
 }
 
 // pc = where the instruction will be put.  this is 
 // needed so that you can compute the offset from <pc>
 // to <addr> which is what gets put in <bl>
 static inline uint32_t armv6_bl(uint32_t bl_pc, uint32_t target) {
-    todo("return the machine code bl to <addr>\n");
+    // this is just a standard BL instruction
+    unsigned base = 0b1011 << 24;
+
+    // and now compute the offset from <bl_pc> to <target>
+    int signed_imm_24 = (int) target - (int) bl_pc - 8;
+
+    // set the first 23 bits to the offset address
+    base = bits_set(base, 0, 23, (signed_imm_24 >> 2) & 0x00FFFFFF);
+
+    return base;    
 }
 static inline uint32_t armv6_bx(uint32_t reg) {
     assert(reg<16);
-    todo("return the machine code to bx <reg>\n");
+    int base = 0b0001001011111111111100010000;
+    base = bits_set(base, 0, 3, reg);
+    return base;
 }
 
+/* return the machine code to: ldr <dst>, [<src>+#<off>]\n */
 static inline uint32_t 
 armv6_ldr(uint32_t dst_reg, uint32_t src_reg, uint32_t off) {
     assert(dst_reg<16);
     assert(src_reg<16);
-    todo("return the machine code to: ldr <dst>, [<src>+#<off>]\n");
+
+    // addressing mode is [<Rn>, #+/-<offset_12>]
+    /* 0 1 0 1 1 0 1 1 Rn Rd offset_12 */
+    //           16-19 _|  |_ 12-15  |_ 0-11
+    unsigned base = 0b0101101100000000000000000000;
+    base = bits_set(base, 16, 19, src_reg);
+    base = bits_set(base, 12, 15, dst_reg);
+    base = bits_set(base, 0, 11, off);
+    return base;    
 }
 
 // generate a dynamic call to hello() 
@@ -83,13 +125,16 @@ void jit_hello(void *fn, void * arg) {
     // you can look at <prelab-code-pi/4-derive-pc-reg.c>
     // or also read the manual :)
     if(arg) {
-        todo("extend this code to handle a 32-bit argument!\n");
+        code[n++] = armv6_ldr(r0, pc, 8); // load the argument into r0
+        /* printk("the PC register will be %x when the ldr executes\n", (uint32_t)&code[n] + 8+4); */
     }
 
     uint32_t src = (uint32_t)&code[n];
     code[n++] = armv6_bl(src, addr);
     code[n++] = armv6_pop(lr);
     code[n++] = armv6_bx(lr);
+    code[n++] = (uint32_t) arg;
+    printk("the argument is placed in code[5]=%x\n", &code[n-1]);
 
     printk("emitted code at %x to call routine (%x):\n", code, addr);
     for(int i = 0; i < 4; i++) 

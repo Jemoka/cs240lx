@@ -79,6 +79,8 @@ The easy way to do this:
 
 The prelab pi code has an example: `prelab-code-pi/0-ident-dcg.c`
 
+0b11101011111111111111111111111110
+    0b1011111111111111101001001100 
 ----------------------------------------------------------------------------
 ### Part 1: write a `hello world`
 
@@ -279,7 +281,7 @@ What you need for PUT32:
                 8024:   e5801000    str r1, [r0]
                 8028:   e12fff1e    bx  lr
 
-     Thus, the store is `0xe5801000`.  
+     Thus, the store is `0xe5801000`. and `e51b3008` for ldr.
 
   2. So, given the address of the call instruction (`lr` holds 4 bytes past this) 
      we can overwrite the original call instruction with the store.

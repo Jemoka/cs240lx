@@ -11,6 +11,7 @@ enum {
     armv6_mvn = 0b1111,
     armv6_orr = 0b1100,
     op_mult = 0b0000,
+    op_add = 0b0100,
 
     cond_always = 0b1110
 };
@@ -46,7 +47,7 @@ armv6_mov_imm8_rot4(reg_t rd, uint32_t imm8, unsigned rot4) {
     if(rot4>>4)
         panic("rotation %d does not fit in 4 bits!\n", rot4);
 
-    todo("implement mov with rotate\n");
+    return cond_always << 28 | 1 << 25 | op_mov << 21 | rd.reg << 12 | rot4 << 8 | imm8;
 }
 static inline uint32_t 
 armv6_mov_imm8(reg_t rd, uint32_t imm8) {
@@ -55,12 +56,13 @@ armv6_mov_imm8(reg_t rd, uint32_t imm8) {
 
 static inline uint32_t 
 armv6_mvn_imm8(reg_t rd, uint32_t imm8) {
-    todo("implement mvn\n");
+    return cond_always << 28 | 1 << 25 | armv6_mvn << 21 | rd.reg << 12 | imm8;
 }
 
 static inline uint32_t 
 armv6_bx(reg_t rd) {
-    todo("implement bx\n");
+    return cond_always << 28 | 0b00010010 << 20 | 0xFFF << 8 | 0b0001 << 4 | rd.reg;
+
 }
 
 // use 8-bit immediate imm8, with a 4-bit rotation.
@@ -74,7 +76,7 @@ armv6_orr_imm8_rot4(reg_t rd, reg_t rn, unsigned imm8, unsigned rot4) {
     if(rot4>>4)
         panic("rotation %d does not fit in 4 bits!\n", rot4);
 
-    todo("implement orr with rotation\n");
+    return cond_always << 28 | 1 << 25 | armv6_orr << 21 | rn.reg << 16 | rd.reg << 12 | rot4 << 8 | imm8;
 }
 
 static inline uint32_t 
@@ -82,13 +84,13 @@ armv6_orr_imm8(reg_t rd, reg_t rn, unsigned imm8) {
     if(imm8>>8)
         panic("immediate %d does not fit in 8 bits!\n", imm8);
 
-    todo("implement orr with immediate\n");
+    return armv6_orr_imm8_rot4(rd, rn, imm8, 0);
 }
 
 // a4-80
 static inline uint32_t 
 armv6_mult(reg_t rd, reg_t rm, reg_t rs) {
-    todo("implement mult\n");
+    return cond_always << 28 | op_mult << 21 | rd.reg << 16 | rs.reg << 8 | 0b1001 << 4 | rm.reg;
 }
 
 
@@ -97,8 +99,13 @@ armv6_mult(reg_t rd, reg_t rm, reg_t rs) {
 static inline uint32_t 
 armv6_ldr_off12(reg_t rd, reg_t rn, int offset) {
     // a5-20
-    todo("implement lrd_off12\n");
+    if (offset >= 0) {
+        return cond_always << 28 | 1 << 26 | 1 << 24 | 1 << 23 | 1 << 20 | rn.reg << 16 | rd.reg << 12 | (offset & 0xFFF);
+    } else {
+        return cond_always << 28 | 1 << 26 | 1 << 24 | 0 << 23 | 1 << 20 | rn.reg << 16 | rd.reg << 12 | (-offset & 0xFFF);
+    }      
 }
+
 
 /**********************************************************************
  * synthetic instructions.
@@ -107,9 +114,15 @@ armv6_ldr_off12(reg_t rd, reg_t rn, int offset) {
  * pass in a location to store them into.
  */
 
+
 static inline uint32_t *
 armv6_load_imm32(uint32_t *code, reg_t rd, uint32_t imm32) {
-    todo("implement loading arbitrary constant\n");
+    // add each byte of imm32 into rd using orr with an appropriate rotation.
+    *code++ = armv6_mov_imm8_rot4(rd, (imm32 >> 0) & 0xFF, 0);
+    *code++ = armv6_orr_imm8_rot4(rd, rd, (imm32 >> 8) & 0xFF, 3*8);
+    *code++ = armv6_orr_imm8_rot4(rd, rd, (imm32 >> 16) & 0xFF, 2*8);
+    *code++ = armv6_orr_imm8_rot4(rd, rd, (imm32 >> 24) & 0xFF, 1*8);
+
     return code;
 }
 
@@ -120,7 +133,7 @@ armv6_load_imm32(uint32_t *code, reg_t rd, uint32_t imm32) {
 //      rd = rm * rs + rn.
 static inline uint32_t
 armv6_mla(reg_t rd, reg_t rm, reg_t rs, reg_t rn) {    
-    todo("implement multiply accumulate\n");
+    return cond_always << 28 | 0x01 << 21 | rd.reg << 16 | rn.reg << 12 | rs.reg << 8 | 0b1001 << 4 | rm.reg;
 }
 
 #endif

@@ -9,6 +9,7 @@
 // as an extension!
 #include "rpi.h"
 #include "cycle-count.h"
+#include "bit-support.h"
 
 // prototypes: these are identical to get32/put32.
 
@@ -29,9 +30,12 @@ static int inline_on_p = 0, inline_cnt = 0;
 // <lr> holds the value of the lr register, which will be 4 
 // bytes past the call instruction to GET32_inline
 uint32_t GET32_inline_helper(uint32_t addr, uint32_t lr) {
+
     if(inline_on_p) {
-        todo("smash the call instruction to just do: ldr r0, [r0]\n");
+        // smash the call instruction to just do: ldr r0, [r0]
+        // full instruction encodes to `0xe51b3008`
         uint32_t pc = lr - 4;
+        *(uint32_t *) pc = 0xe5900000;
 
         inline_cnt++;
 
@@ -40,16 +44,30 @@ uint32_t GET32_inline_helper(uint32_t addr, uint32_t lr) {
         output("GET: rewriting address=%x, inline count=%d\n", pc, inline_cnt);
         inline_on_p = 1;
     }
-
+    
     // manually do the load and return the first time.
-    return *(volatile uint32_t*)addr;
+    return *(volatile uint32_t *) addr;
 }
 
 // go through and rewrite similar to GET32_inline -- you have to 
 // modify <runtime-inline-asm.S> as well.
 void PUT32_inline_helper(uint32_t addr, uint32_t val, uint32_t lr) {
+    if(inline_on_p) {
+        // smash the call instruction to just do: str r1, [r0]
+        // full instruction encodes to `0xe5801000`
+        uint32_t pc = lr - 4;
+        *(uint32_t *) pc = 0xe5801000;
+
+        inline_cnt++;
+
+        // turn inlining off while we print to make debugging easier.
+        inline_on_p = 0;
+        output("PUT: rewriting address=%x, inline count=%d\n", pc, inline_cnt);
+        inline_on_p = 1;
+    }
+
     inline_on_p = 0;
-    todo("implement this\n");
+    *(volatile uint32_t *)addr = val;
 }
 
 /********************************************************************
@@ -62,7 +80,7 @@ void test_get32_inline(unsigned n) {
         uint32_t got = GET32_inline((uint32_t)&i);
         if(got != i) {
             inline_on_p = 0;
-            panic("got %d, expected %d\n", got, i);
+            panic("got %d, expected %d, maybe its %d\n", got, i, *(uint32_t *) got);
         }
     }
 }
@@ -168,7 +186,7 @@ void notmain(void) {
     output("time to run 10 times non-inlined:   %d\n", t_run10);
     output("total inline count=%d\n", inline_cnt);
 
-    todo("smash the original get32: should get same speedup\n");
+    /* todo("smash the original get32: should get same speedup\n"); */
     
     // smash the GET32 code to call the GET32_inline_helper, identically
     // how GET32_inline does.  you can' just copy the code since the branch
@@ -183,7 +201,11 @@ void notmain(void) {
     // 2. this will result in all caller sites to GET32 getting
     //    inlined as well.
     // 3. thus: when it runs below, should have the same speedup
-    todo("assign the new instructions to get_pc[0] and get_pc[1]\n");
+    /* get_pc[0] = 0xe1a0100e; // mov r1, lr */
+    uint32_t base = 0xEA000000;
+    int signed_imm_24 = (int) GET32_inline - (uint32_t) GET32 - 8;
+    base = bits_set(base, 0, 23, (signed_imm_24 >> 2) & 0x00FFFFFF);
+    *get_pc = base;
 
     output("after rewriting get32!\n");
     output("    inst[0] = %x\n", get_pc[0]);
@@ -203,5 +225,30 @@ void notmain(void) {
     output("time to run 10 times non-inlined:   %d\n", t_run10);
     output("total inline count=%d\n", inline_cnt);
 
-    todo("now implement the same thing for PUT32\n");
+    output("about to test put32 inlining\n");
+    inline_on_p = 1;
+    test_put32_inline(10);
+    inline_on_p = 0;
+    output("test done!\n");
+
+    uint32_t *put_pc = (void *)PUT32;
+    base = 0xEA000000;
+    signed_imm_24 = (int) PUT32_inline - (uint32_t) PUT32 - 8;
+    base = bits_set(base, 0, 23, (signed_imm_24 >> 2) & 0x00FFFFFF);
+    *put_pc = base;
+
+    inline_on_p = 1;
+    // this test should now have inline overhead.
+    t_inline       = TIME_CYC(test_put32(10));
+    // this is our original: should have the same speedup.
+    t_inline_run10 = TIME_CYC(test_put32_inline(10));
+    // this is the inlined versino
+    t_run10        = TIME_CYC(test_put32(10));    
+    inline_on_p = 0;
+
+    output("time to run w/ inlining overhead:   %d\n", t_inline);
+    output("time to run 10 times inlined:       %d\n", t_inline_run10);
+    output("time to run 10 times non-inlined:   %d\n", t_run10);
+
+    /* todo("now implement the same thing for PUT32\n"); */
 }

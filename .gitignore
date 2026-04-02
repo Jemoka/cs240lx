@@ -1,0 +1,8 @@
+*.d
+*.o
+*.a
+*.bin
+*.elf
+*.list
+*.test
+*.raw

@@ -1,20 +1,31 @@
-/* you should modify this linker script  */
 SECTIONS
 {
-    /*
-     * cs107e uses this:
-     *      .text 0x8000 :  { start.o(.text*)  *(.text*) } 
-     * which makes linking in start.o awkward if you don't copy it into
-     * each dir.
-     *
-     * XXX: I cannot make text.boot work if we link start into libpi.a 
-     */
-    .text 0x8000 :  { KEEP(*(.text.boot))  *(.text*) }
-    .data : { *(.data*) } 
-    .rodata : { *(.rodata*) }
-    .bss : {
+    LINK_ADDR = 0x8000;
+
+    /* our simple a.out header.  will add as needed. */
+    .crt0_header LINK_ADDR : {
+        PROVIDE(__start__ = .);
+        /* jump over the rest of this header to text */
+        LONG(0xa000006);
+        PROVIDE(__hello_string__ = .);
+        BYTE(104)
+        BYTE(101)
+        BYTE(108)
+        BYTE(108)
+        BYTE(111)
+        BYTE(0)
+    }
+    .text :  {
+        PROVIDE(__code_start__ = .);
+        KEEP(*(.text.boot))
+        *(.text*)
+    }
+    .data :   { . = ALIGN(4); *(.data*)   . = ALIGN(4); } 
+    .rodata : { . = ALIGN(4); *(.rodata*) . = ALIGN(4); }
+	.bss : {
         __bss_start__ = .;
         *(.bss*)
+        . = ALIGN(4);
         *(COMMON)
         . = ALIGN(8);
         __bss_end__ = .;
@@ -22,3 +33,4 @@ SECTIONS
         __heap_start__ = .;
     }
 }
+
