@@ -2,30 +2,29 @@
 
 The last thing we need to tell you after the previous lab: Encoding
 binary instructions can be error-prone and is definitely tedious.
-
-
-
-As you look at the encodings you will realize two things:
-   1. We already have tools that understand them (e.g., the assembler).
-   2. While the encodings have weird fields at weird offsets each field
-      is almost always independent of the others.
-
+However, if you step back a bit you can see we can easily cheat with
+some math-shaped hacking to exploit two things:
+  1. We already have tools that understand them (e.g., the assembler).
+  2. While the encodings have weird fields at weird offsets each field
+     is almost always independent of the others.
 As a result, you can use a form of linear equation solving to efficiently
 reverse engineer how to encode an instruction.
 
-By simply:
-  1. emitting the instruction in a file (possibly with placeholders
-     to bracket it)
-  2. Run the assembler on it to produce a binary version.
-  3. Read in the result of (2): that is the encoding!
+How to see how an instruction is encoded?   One simple way:
+  1. Emit the instruction in a file (possibly with placeholders
+     to bracket it so you can find it in the binary).
+  2. Run the assembler on this file to produce a binary version.
+  3. Read in the result of (2) and find location where (1) is: 
+     the 32-bit value there (for armv6) is the encoding!
 
-To find all register encodings:
-  1. Hold `rdst` and `rsrc1` fixed and iterate over all possible
-     registers for `rsrc2`.
-  2. Hold `rdst` and `rsrc2` fixed and iterate over all possible
-     registers for `rsrc1`.
-  3. Hold `rsrc1` and `rsrc1` fixed and iterate over all possible
-     registers for `rdst`.
+Thus, to automatically figure out how (for example) `add dst, src1, src2` 
+is encoded:
+  1. Hold `dst` and `src1` fixed and iterate over all possible
+     registers for `src2`.
+  2. Hold `dst` and `src2` fixed and iterate over all possible
+     registers for `src1`.
+  3. Hold `src1` and `src1` fixed and iterate over all possible
+     registers for `dst`.
   4. All the bits that never change during (1)---(3) are part of the opcode.
 
 If the instruction fields are idependent, then the bits that change for
@@ -36,8 +35,8 @@ An example is easier than words.  The program `code/0-simple-derive.c`
 shows how to do this solving to figure out the encoding for the `src2`
 register for the add instruction.
 
-First, to figure out the register encoding, we write out one add
-instruction, one for each possible register (`r0..r15`):
+First, to figure out the register encoding for `src2`, we write out 
+16 add instruction, one for each possible register (`r0..r15`):
 
 ```c
 
@@ -78,6 +77,8 @@ After compiling, if you look at the `.list` file you see these become:
 
 ```
 00008038 <derive_add_src2>:
+@    code    inst         assembly
+@  address  encoding      representation
     8038:   12345678    .word   0x12345678
     803c:   e0800000    add r0, r0, r0
     8040:   e0800001    add r0, r0, r1
@@ -99,12 +100,13 @@ After compiling, if you look at the `.list` file you see these become:
     8080:   e12fff1e    bx  lr
 ```
 
-If you look at the add instructions themselves, you can see that only
-the lower bits change as we iterate and, in fact it is identical to the
-register value.  (This identity map is common for register encodings):
+If you look at the `add` instruction encodings themselves, you can
+see that only the lower bits change as we iterate and, in fact its value
+is identical to the register value.  (This identity map is common for
+register encodings; less so for immediates):
 
 ```
-    #              src2
+    @              src2
     803c:   e08000  00    add r0, r0, r0    
     8040:   e08000  01    add r0, r0, r1
     8044:   e08000  02    add r0, r0, r2
@@ -116,7 +118,7 @@ register value.  (This identity map is common for register encodings):
     8078:   e08000  0f    add r0, r0, pc
 ```
 
-Given this we do the second step: iterate over all instructions,
+Given this we do the second step: iterate over all instruction values,
 computing which bits change --- these are exactly those used to encode
 the register number.
 
@@ -130,6 +132,7 @@ Since its cleaner we just compute which bits are always 0, which are always
     //   of these.
     uint32_t always_0 = ~0;
     uint32_t always_1 = ~0;
+    // iterate over the 16 instuctions
     for(int i = 0; i < 15; i++) {
         always_0 &= ~inst[i];
         always_1 &= inst[i];
@@ -143,7 +146,6 @@ Since its cleaner we just compute which bits are always 0, which are always
 You can generalize this to solve for multiple registers and immediates.
 The program `code/1-simple-derive.c` shows how to do this.
 
-
 A long time ago, we built a tool, Derive, that used this approach
 and it worked pretty well.  (It came about because I refused to figure out
 how to encode `x86` instructions because they were so disgusting.)  We'll
@@ -151,14 +153,11 @@ do a simple version in this lab.  The papers:
    - a [short version](docs/derive-short.pdf)
    - a [longer more short version](docs/derive-usenix.pdf)
 
-With all that said, you should know how to use the instruction manual.  
-However, doing sleazy reverse engineering teaches you about 
-invariants, relations, tendencies, which will lead to a deeper
-understanding.  It also leads to a deeper insight because the machine
-code is not just some inert substance.  
-
-We are doing things this sleazy "wrong way" because it makes encoding
-an interesting puzzle.
+With all that said, you should know how to use the instruction manual.
+However, doing sleazy reverse engineering teaches you to not treat 
+machine code as some inert substance, but instead gamifies exploiting
+invariants, relations, tendencies, whichs gifts you a deeper understanding
+while making something tedious into (potentially) a hyper-focus puzzle.
 
 Useful readings:
   - [using gcc to figure out assembly](https://github.com/dddrrreee/cs140e-26win/tree/main/notes/using-gcc-for-asm).
@@ -166,13 +165,13 @@ Useful readings:
 
 ### What to do
 
-1. You should look at the code in `code/` and modify it to reverse engineer
-   the code you hand-coded in lab 1.  There is an example of how to do 
-   immediates.  You're strongly encouraged to write a power, clean
-   system that can succinctly do many instructions easily.
-2. You should add code that will print C encoder routines that 
-   will use your reverse engineered constraints to implement the 
-   encoding.  E.g., you should emit the implementation of:
+1. Look at the programs in `code/`.  Make a version that reverse engineers
+   the code you hand-coded in lab 1.  (There is an example of how to do
+   immediates `1-simple-derive.c`)  You're strongly encouraged to write
+   a power, clean system that can succinctly do many instructions easily.
+2. Extend (1) to print the C encoder routines that use your reverse 
+   engineered constraints to implement the encoding.  E.g., you should 
+   emit the implementation of:
 
     // returns the uint32_t encoding of <add dst, src1, src2>
     uint32_t gen_add(uint32_t dst, uint32_t src1, uint32_t src2);
@@ -186,3 +185,5 @@ Extensions:
    detect illegal registers or constrants (by detecting when the assembler
    fails) or bifurcation constraints (when it makes more instructions
    than expected).
+ - Good extension is to do 2023's version which emits the code at runtime
+   and solves.
