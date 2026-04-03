@@ -1,13 +1,13 @@
 # SUPPORT_OBJS := 
-PROGS := c-for-asm.c
 
-# bit more fancy
-PROGS := 1-simple-derive.c
 
 # simplest example.
 PROGS := 0-simple-derive.c
 
+# bit more fancy
+PROGS := 1-simple-derive.c
 
+PROGS := c-for-asm.c
 
 # define this if you need to give the device for your pi
 TTYUSB = 
