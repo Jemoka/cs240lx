@@ -15,12 +15,12 @@ Labs:
    - [1-dynamic-code-gen](1-dynamic-code-gen/): how 
      to generate executable machine code at runtime and how to 
      use this trick to do neat stuff.  
+   - [2-jit-derive](2-jit-derive): reverse engineer machine code encodings
+     using the assembler.
+   - [3-ir](3-ir): simple IR remote control reverse engineering.
 
 
 Possible labs, many more TBA (note: these aren't checked in yet):
-   - [3-ir](3-ir): simple IR remote control reverse engineering.
-   - [4-jit-derive](4-jit-derive): reverse engineer machine code encodings
-     using the assembler.
    - [5-malloc+gc](5-malloc+gc): build a Boehm style garbage collector.
    - [6-debug-alloc](6-debug-alloc): build a simple debugging allocator.
      We use this for our later checking tools.
