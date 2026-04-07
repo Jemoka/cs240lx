@@ -4,8 +4,8 @@ PROGS := 0-dump-driver.c
 # if you have auxilary files, add them here.
 COMMON_SRC :=
 
-# for extensions if need.
-L := ../../../libpi/
+# for extensions if need threads.
+L := $(CS240LX_2026_PATH)/libpi
 STAFF_OBJS += $(L)/staff-objs/staff-rpi-thread.o
 STAFF_OBJS += $(L)/staff-objs/staff-rpi-thread-asm.o
 
