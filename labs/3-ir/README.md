@@ -338,7 +338,7 @@ to use interrupts (note: this is hard if we care about very fine timing;
 there are other approaches).
 
 If you need a refresher:
-  - lab 8 in cs140e goes over GPIO interrupts.
+  - lab 8 in cs140e goes over [GPIO interrupts][GPIO-int].
   - I checked in a staff version `staff-objs/gpio-int.o` that you can link in
     (by modifying `put-your-src-here.mk`) and use.
   - If you have it, you can also use your own code.
@@ -388,9 +388,12 @@ A possibly better strategy:
 
 [DWEII]: https://www.amazon.com/DWEII-Infrared-Wireless-Control-Raspberry/dp/B09ZTZQFP7
 [HX1838]: docs/HX1838.pdf
-[GPIO]: https://github.com/dddrrreee/cs140e-24win/tree/main/labs/3-gpio
-[Interrupts]: https://github.com/dddrrreee/cs140e-24win/tree/main/labs/5-interrupts
-[Threads]: https://github.com/dddrrreee/cs140e-24win/tree/main/labs/6-threads
+
 [TSOP4838]: https://www.newark.com/webapp/wcs/stores/servlet/ProductDisplay?catalogId=15003&productSeoURL=vishay&partNumber=60K6999
 [IR]: http://irq5.io/2012/07/27/infrared-remote-control-protocols-part-1/
 
+
+[GPIO]: https://github.com/dddrrreee/cs140e-26win/tree/main/labs/2-gpio
+[Interrupts]: https://github.com/dddrrreee/cs140e-26win/tree/main/labs/4-interrupts
+[Threads]: https://github.com/dddrrreee/cs140e-26win/tree/main/labs/5-threads
+[GPIO-int]: https://github.com/dddrrreee/cs140e-26win/tree/main/labs/8-device-int
