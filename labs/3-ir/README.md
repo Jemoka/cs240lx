@@ -1,47 +1,58 @@
 ### Overview: reverse engineering a infrared remote control.
 
 <p align="center">
-  <img src="images/ir.jpg" width="350" />
+  <img src="images/hx1838-ir-on.jpg" width="350" />
 </p>
 
+***Quick start***:
+  - Goal: Reverse engineer the [DWEII] remote using a [HX1838] IR sensor.
+  - Hookup: Use jumpers to connect: "+" to 3v, "-" to ground,
+    and "S" to GPIO 21 (which will be configured as input, pullup).
+  - Important: pull the clear plastic tab out of the remote so the
+    battery works!
+  - Quick check: If correctly hooked-up and hardware works: when you
+    push any remote button, a tiny red LED on the IR sensor should
+    turn red.
+  - NOTE: while we use the HX1838's, the lab was written for the higher-end
+    Vishay TSOP IR receiver and emitters and I don't have the heart to change
+    it.  The discussion should be the same, other than the wiring.
+
+#### Overview
 
 Today is a fun reverse engineering lab.   
-  1. Using an IR sensor --- [the Vishay TSOP4838](https://www.newark.com/webapp/wcs/stores/servlet/ProductDisplay?catalogId=15003&productSeoURL=vishay&partNumber=60K6999) --- you'll reverse engineer the key presses from a remote.  It's a fun puzzle that doesn't need much infrastructure.  Many projects you do get better if you can add remote control, so it's also useful.
-
-As with the last lab, it should be easy to ignore all of our code if
-you want, and just do everything from scratch ("Daniel mode").
+  1. Using an IR sensor --- [the Vishay TSOP4838][TSOP4838] --- you'll 
+     reverse engineer the key presses from a remote.  It's a fun puzzle
+     that doesn't need much infrastructure.  Many projects you do get
+     better if you can add remote control, so it's also useful.
+  2.  As with the last lab, it should be easy to ignore all of our code if
+      you want, and just do everything from scratch ("Daniel mode").
 
 Where stuff is:
-
   - The IR receiver datasheet is in `docs/tsop4838.pdf`.
     You should read this to make sure (1) you know which pins to connect
     to and (2) what min and max power they expect.
-
   - The IR led datasheet (for part 2) is `docs/tsal4400.pdf`.  The main
     rule: we do not use a resistor and the LED is tiny, so never leave
     it on for long, and never ever plug directly into 3v.  (Definitely
     not 5v.)
-
   - The starter code is in `code/0-dump-driver.c`.
-
-  - We have remotes.  Note that after you get them working,
-    you should be able to download a "universal remote" app on your phone
-    and also use that.  A cool side-effect is having the infrastructure
-    to control your pi from your phone.
-
-    Note: many (most?) remote apps suck, so it makes sense to poke around
-    on reddit or stackoverflow for a simple one.
+  - We have remotes.  Note:
+     - After you get them working, you should be able to download
+       a "universal remote" app on your phone and also use that.  A cool
+       side-effect is having the infrastructure to control your pi from
+       your phone.
+     - Many (most?) remote apps suck, so it makes sense to poke around
+       on reddit or stackoverflow for a simple one.
 
 *The single most common major mistake*:
-
   - Do not print values *while* recording times, since doing so will
     mess up your timings.  Instead when the IR has been low for "a long
     time", print all the timings you've seen.
 
 Background: If you haven't had 140e: you should go through the labs:
-  - [GPIO](https://github.com/dddrrreee/cs140e-24win/tree/main/labs/3-gpio)
-  - [Interrupts](https://github.com/dddrrreee/cs140e-24win/tree/main/labs/5-interrupts)
-  - [Threads](https://github.com/dddrrreee/cs140e-24win/tree/main/labs/6-threads)
+  - [GPIO][GPIO]
+  - [Interrupts][Interrupts]
+  - [Threads][Threads]
      
 ### Checkoff
 
@@ -51,11 +62,17 @@ Checkoff:
   2. You should do some kind of extension.  (Easiest is to use
      interrupts).
 
+We have a reasonable number of Vishnay IR + receivers.   Simple 
+hacks:
+  1. Make a remote clone that records the signal for each button output
+     by your remote and then replay this.
+  2. Make a software UART that transmits using the IR + receiver.
+
 --------------------------------------------------------------------
 ### Background: how an IR remote sends values
 
 Optional background reading:
- - [A nice clear writeup of IR protocol](http://irq5.io/2012/07/27/infrared-remote-control-protocols-part-1/)
+ - [A nice clear writeup of IR protocol][IR]
 
 IR remotes send a "0" or "1" bit by switching their internal
 LEDs (causing the receiver to go to 0) for differing amounts of time.
@@ -79,11 +96,9 @@ Notes:
   - IR=0 denotes that a read of the IR signal GPIO pin is 0
     (`gpio_read(signal)=0`) and IR=1 denotes the read of the IR signal
     pin is 1 (`gpio_read(signal)=1`).
-
   - Easy confusion: Recall that that by default IR=1 when there is no
     signal, IR=0 and 0 when there is (i.e., receiver saw a long-enough
     signal at 38kHz).
-
   - It appears they indicate the end of a transmission by
     not signaling (so: IR=1) for about 40,000 usec.
   - Sometimes remotes send different values for a "short press" and
@@ -104,7 +119,6 @@ So given this information you should be able to reverse engineer the
 value for each key.
 
 A simple-minded algorithm:
-
   1. Loop until you read 0 from the IR (IR=0 implies there was a signal).
   2. If we get a header (IR=0 for 9000, IR=1 for 4500) then read bits 
      until we timeout (set this longer than any legal value -- I used 20000).
@@ -123,7 +137,6 @@ A simple-minded algorithm:
 This process should remind you of UART read.  And, as with UART, there
 will always be timing error, so your code has to handle with uncertainty
 it introduces.
-
   1. I accepted readings as a valid header if they
      were within 10% of the expected value.  So: a first reading IR=0
      for 9000 +/- 900usec, followed by IR=1 for 4500 +/- 450usec.
@@ -274,8 +287,6 @@ NOTES:
 ----------------------------------------------------------------
 ###  Extension: smoothly control a light.
 
-***IF YOU GET HERE DO A PULL: AM ADDING STUFF***
-
 If you have a remote control, you'd probably want it to control something.
 So for this extension, do so.
 
@@ -295,21 +306,17 @@ one (e.g., interrupts) not thinking about how it exponentially explodes
 the number of paths in code, essentially making it untestable.
 
 A few different options:
-
   1. Have the IR code run in a loop, and the PWM code run in a timer
      interrupt handler.  Easy to describe.   Not that hard to setup.
      Downside: can't test the code thoroughly, you do need the interrupt
      to run fast enough or you can miss IR input.
-
   2. Use hardware to PWM --- you can view this as having a second thread
      that happens to run on a hardware device.  The pi has a PWM 
      device that allows this.  Downside: datasheet is not great.
-
   3. Use cooperative threads: Each time the IR or the LED does a delay,
      yield to the other thread.  Advantages: less paths than the interrupt
      code.  The thread context switching cost (and time between yields)
      is a hard limit on how fine your accuracy can be.
-
   4. Use a run-to-completion thread (a function call with state) for
      the PWM code.  This routine is called whenever the IR code does
      a delay (i.e., in each place it would call yield for threads).
@@ -325,8 +332,6 @@ code runs and flag if it ever exceeeds some threadshold.
 ----------------------------------------------------------------
 # Extension: IR interrupts.
 
-***IF YOU GET HERE DO A PULL: AM ADDING***
-
 In general, if we use remotes its to very-occasionally control a device
 that is pretty busy doing something else.  In this case, it's natural
 to use interrupts (note: this is hard if we care about very fine timing;
@@ -340,6 +345,7 @@ If you need a refresher:
 
 The relevant functions:
 
+```
     // include/gpio.h
 
     // p97 set to detect rising edge (0->1) on <pin>.
@@ -363,6 +369,7 @@ The relevant functions:
 
     // p96: have to write a 1 to the pin to clear the event.
     void gpio_event_clear(unsigned pin);
+```
 
 Simple strategy:
    1. enable rising edge (from 0 to 1).
@@ -374,4 +381,16 @@ A possibly better strategy:
    1. Detect each edge and put the result in a queue.
    2. When you detect a stop, convert the edges to a value.
    3. This is more complicated, but lets you spend not-much time in the handler.
+
+<p align="center">
+  <img src="images/dweii-hx1838.png" width="350" />
+</p>
+
+[DWEII]: https://www.amazon.com/DWEII-Infrared-Wireless-Control-Raspberry/dp/B09ZTZQFP7
+[HX1838]: docs/HX1838.pdf
+[GPIO]: https://github.com/dddrrreee/cs140e-24win/tree/main/labs/3-gpio
+[Interrupts]: https://github.com/dddrrreee/cs140e-24win/tree/main/labs/5-interrupts
+[Threads]: https://github.com/dddrrreee/cs140e-24win/tree/main/labs/6-threads
+[TSOP4838]: https://www.newark.com/webapp/wcs/stores/servlet/ProductDisplay?catalogId=15003&productSeoURL=vishay&partNumber=60K6999
+[IR]: http://irq5.io/2012/07/27/infrared-remote-control-protocols-part-1/
 
