@@ -296,8 +296,8 @@ This didn't matter for our keypress printing since printing wasn't
 timing sensitive.  However, even something as simple as PWM-ing an LED
 can go awry without care:
 
-  1. You can't sit in a loop waiting for the complete IR signal b/c     
-     you won't be turning the LED on-off.
+  1. You can't sit in a loop waiting for the complete IR signal b/c you
+     won't be turning the LED on-and-off.
   2. You can't blindly sit turning an LED on-off b/c then you may well
      be ignore IR input.
 
@@ -386,7 +386,7 @@ A possibly better strategy:
   <img src="images/dweii-hx1838.png" width="350" />
 </p>
 
-[DWEII]: https://www.amazon.com/DWEII-Infrared-Wireless-Control-Raspberry/dp/B09ZTZQFP7
+[DWEII]: images/dweii-hx1838.png
 [HX1838]: docs/HX1838.pdf
 
 [TSOP4838]: https://www.newark.com/webapp/wcs/stores/servlet/ProductDisplay?catalogId=15003&productSeoURL=vishay&partNumber=60K6999
