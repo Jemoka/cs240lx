@@ -13,6 +13,8 @@
   - Quick check: If correctly hooked-up and hardware works: when you
     push any remote button, a tiny red LED on the IR sensor should
     turn red (circled in the picture).
+  - `cd code; make` : point the remote and push keys and timing values
+    should printout.
   - NOTE: while we use the HX1838's, the lab was written for the higher-end
     Vishay TSOP IR receiver and emitters and I don't have the heart to change
     it.  The discussion should be the same, other than the wiring.
@@ -59,11 +61,11 @@ Background: If you haven't had 140e: you should go through the labs:
 Checkoff:
   1. You should consistently be able to print "LEFT", "RIGHT",
      "UP", "DOWN", "OK", "*" and "#" when you press the remote.
-  2. You should do some kind of extension.  (Easiest is to use
-     interrupts).
+  2. You should do some kind of [EXTENSION](#extension).  (Easiest is to use
+     interrupts.)
 
-We have a reasonable number of Vishnay IR + receivers.   Simple 
-hacks:
+We have a reasonable number of the more fancy Vishay IR receivers and emitters.
+Simple hacks:
   1. Make a remote clone that records the signal for each button output
      by your remote and then replay this.
   2. Make a software UART that transmits using the IR + receiver.
