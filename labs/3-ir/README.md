@@ -12,7 +12,7 @@
     battery works!
   - Quick check: If correctly hooked-up and hardware works: when you
     push any remote button, a tiny red LED on the IR sensor should
-    turn red.
+    turn red (circled in the picture).
   - NOTE: while we use the HX1838's, the lab was written for the higher-end
     Vishay TSOP IR receiver and emitters and I don't have the heart to change
     it.  The discussion should be the same, other than the wiring.
@@ -120,17 +120,15 @@ value for each key.
 
 A simple-minded algorithm:
   1. Loop until you read 0 from the IR (IR=0 implies there was a signal).
-  2. If we get a header (IR=0 for 9000, IR=1 for 4500) then read bits 
-     until we timeout (set this longer than any legal value -- I used 20000).
-
-     Else if the readings don't match a header, goto (1).
+  2. IF we get a header (IR=0 for 9000, IR=1 for 4500) then read bits
+     until we timeout (set this longer than any legal value -- I used
+     20000).  ELSE if the readings don't match a header, goto (1).
   3. Reconstruct the signal by converting IR readings to a 1 or 0
      as follows:
        - 0 = IR=0 for 600us, IR=1 for 600usec.
        - 1 = IR=0 for 600us, IR=1 for 1600usec.
      And shifting the value into a "large enough" unsigned integer. (For us:
      32-bits.)  
-
      Note, the order doesn't matter as long as you're consistent 
      since it's just an internal integer.
 
@@ -381,10 +379,6 @@ A possibly better strategy:
    1. Detect each edge and put the result in a queue.
    2. When you detect a stop, convert the edges to a value.
    3. This is more complicated, but lets you spend not-much time in the handler.
-
-<p align="center">
-  <img src="images/dweii-hx1838.png" width="350" />
-</p>
 
 [DWEII]: images/dweii-hx1838.png
 [HX1838]: docs/HX1838.pdf
