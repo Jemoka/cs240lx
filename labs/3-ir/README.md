@@ -18,6 +18,9 @@
   - NOTE: while we use the HX1838's, the lab was written for the higher-end
     Vishay TSOP IR receiver and emitters and I don't have the heart to change
     it.  The discussion should be the same, other than the wiring.
+  - NOTE: at the start of class I realized some of the receivers are
+    VS1838Bs (the ones with the silver remotes).   Pin out is: (from 
+    the front): out (left), gnd, vcc (2.7-5.5v).
 
 #### Overview
 
