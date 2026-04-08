@@ -177,13 +177,14 @@ Useful readings:
     uint32_t gen_add(uint32_t dst, uint32_t src1, uint32_t src2);
 
 Extensions:
- - There are tons of fun tricks.    Will add.  But the easiest to just
+ - There are tons of fun tricks.  The easiest to just
    figure out the encoding for as many things as you see in the list
    file as you can.
- - You can also use the cross compiler (better to do so in some ways)
-   by emitting dynamically and reading back in.  If you do so you can
-   detect illegal registers or constrants (by detecting when the assembler
-   fails) or bifurcation constraints (when it makes more instructions
-   than expected).
- - Good extension is to do 2023's version which emits the code at runtime
-   and solves.
+ - Webasm Jitter: very topical.
+ - [2025's 240lx derive lab](https://github.com/dddrrreee/cs240lx-25spr/tree/main/labs/4-jit-derive) which uses the more flexible derive method
+   of using the cross compiler to dynamically emit instructions and
+   read them back in.  Using a real code generator can make things more
+   powerful, though a bit more opaque in places.  It also makes it easy
+   to dynamically detect illegal registers and constrants (because the
+   assembler will fails) or bifurcation constraints (when it makes more
+   instructions than expected).

@@ -217,6 +217,8 @@ void notmain() {
     output("src1    = [%s]\n", BITS_STR(src1));
     output("opcode  = [%s]\n", BITS_STR(opcode));
 
+    return;
+
     output("going to try cheating\n");
     uint32_t dst_cheat  = solve_for_reg("src2", derive_add_dst_cheat, 2);
     if(dst_cheat != dst)
