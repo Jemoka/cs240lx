@@ -1,4 +1,4 @@
-SUBDIRS=  1-malloc code-leak+gc
+SUBDIRS=  1-malloc 2-code-leak+gc
 
 .PHONY: all check clean
 all check clean: $(SUBDIRS)
