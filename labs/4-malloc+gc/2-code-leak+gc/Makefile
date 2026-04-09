@@ -1,4 +1,7 @@
 # Part 2: garbage collection
+PROGS := tests/gc-test9-gc-interior.c
+PROGS := tests/gc-test8-gc-reachable.c
+PROGS := tests/gc-test7-gc-global.c
 PROGS := tests/gc-test6-no-leak.c
 PROGS := tests/gc-test5-gc.c
 PROGS := tests/gc-test4-no-leak.c  
@@ -12,6 +15,8 @@ PROGS := tests/ck-test2-ok.c
 PROGS := tests/ck-test3-ok.c
 PROGS := $(wildcard tests/ck-test[0-9]*.c)
 
+# all to start
+PROGS += $(wildcard tests/gc-test[0-9]*.c)
 
 # you should  comment out all staff objs and replace with your code.
 
@@ -28,9 +33,13 @@ STAFF_OBJS += staff-ck-gc.o
 STAFF_OBJS += staff-gc-asm.o
 
 # if you get issues, try swapping this.
-# OPT_LEVEL = -O0
-OPT_LEVEL = -O2
-# CFLAGS += -fno-inline
+OPT_LEVEL = -O0
+# OPT_LEVEL = -O2
+
+CFLAGS += -fno-inline
+CFLAGS += -fno-inline-functions
+CFLAGS += -fno-inline-small-functions
+CFLAGS += -fno-default-inline
 
 RUN=1
 EXCLUDE ?= grep -v simple_boot
