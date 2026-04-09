@@ -9,9 +9,9 @@ TRACE:hdr_print:	Block allocated at: tests/gc-test5-gc.c:test:20
 TRACE:sweep_leak:	GC:Checked 1 blocks.
 TRACE:sweep_leak:		GC:ERRORS: 1 errors, 0 maybe_errors
 TRACE:check_should_leak:GC: SUCCESS: found 1 leaks!
-TRACE:notmain:---------------------------------------------------------
 TRACE:sweep_free:GC:FREEing block id=1 
 TRACE:sweep_free:	GC:Checked 1 blocks, freed 1, 12 bytes
+TRACE:notmain:compacted = 
 TRACE:sweep_free:	GC:Checked 0 blocks, freed 0, 0 bytes
 TRACE:notmain:should find no leak
 TRACE:sweep_leak:	GC:Checked 0 blocks.
