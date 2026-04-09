@@ -1,9 +1,17 @@
+# Part 2: garbage collection
 PROGS := tests/gc-test6-no-leak.c
 PROGS := tests/gc-test5-gc.c
 PROGS := tests/gc-test4-no-leak.c  
 PROGS := tests/gc-test2-no-leak.c  
 PROGS := tests/gc-test1-no-leak.c  
 PROGS := $(wildcard tests/gc-test[0-9]*.c)
+
+# Part 1: simple checking allocation
+PROGS := tests/ck-test1-ok.c
+PROGS := tests/ck-test2-ok.c
+PROGS := tests/ck-test3-ok.c
+PROGS := $(wildcard tests/ck-test[0-9]*.c)
+
 
 # you should  comment out all staff objs and replace with your code.
 
