@@ -1,19 +1,5 @@
 ## Lab: Leak detection, garbage collection
 
--------------------------------------------------------------------------
-### tl;dr: BUGS and clarifications.
-  
-  - BUG: you do not need to implement `dump_regs` --- we used to use this
-    until 10 minutes before class when I realized the approach was
-    fundamentally broken.  Unfortunately there are still a couple old
-    comments that mention it.  You just need to do the two trampolines in
-    `gc-asm.S` (`ck_gc` and `ck_find_leaks`).
-
-  - If you get an error "not handling that" in `staff-ck-gc.c` just
-    have your kr_malloc allocate more memory on each call (for
-    the tests 64k should be enough, but can do 512k).
-
--------------------------------------------------------------------------
 In this lab you'll:
   1. Adapt the K&R `malloc/free` implementation to the rpi so we have
      a correct (albeit slow) `free` implementation.
@@ -48,41 +34,68 @@ You'll import the K&R `malloc` into libpi:
 tl;dr:
   - Code is in: `code-leak+gc/ckalloc.c`
   - There are three tests:
-
+```
         PROGS := tests/ck-test1-ok.c
         PROGS += tests/ck-test2-ok.c
         PROGS += tests/ck-test3-ok.c
+```
 
+Basic intuition:
+  - If nothing points to an allocated block B it is lost. 
+  - Lost blocks as leaks: in the context of manual memory management --- where
+    any manually allocated block is supposed to be paired with a manual
+    `free(B)` --- any lost block is a leak since it can't ever be freed.
+    You can flag these as errors.
+  - Lost blocks as garbage: in the context of automatic memory management 
+    --- where the system is supposed to automatically free any allocated 
+    block when it will no longer be used --- a lost block B is garbage and
+    the system can safely do `free(B)`.
+  - NOTE: for "well-behaved code" (more below) these conditions are
+    sufficient and thus, safe.  However, they are not necessary: blocks
+    that are *not* lost can still be leaks or garbage.  A cliche example:
+    unreachable cyclic data-structures --- every element has a pointer
+    to it, but the entire chain is lost.
+  - Garbage collection in this context is one of the many Bishop Berkeley
+    "tree falls in the forest" arguments used throughout systems.
+    Code might have allocated a block B in the past with a contractual
+    expection that it owns B.  However, the instant nothing can reach B,
+    B becomes not *observable*.  Thus, if we take B back, it's "as if"
+    B was still allocated --- code cannot tell the difference.  As the
+    old saying goes: You don't have to render a tree if no one can see it.
 
 For GC and leak detection we need a way to determine:
-  1. The set of allegedly allocated blocks (so we know what to free
+  1. The set of (allegedly) allocated blocks (so we know what to free
      if it's not reachable).
-  2. That allocated block a pointer `p` points to (so that we can 
-     mark that block as reachable).
+  2. Given a pointer `p`: the allocated block `p` points to (so that
+     we can mark that block as reachable).
 
 For this part you'll do simple veneer on `kr_malloc` to:
-  1. Put all allocated blocks on a list.
-  2. Add a header that lets us determine block size and other information.
+  1. Put all allocated blocks on an allocated list.
+  2. Add a header to each allocated block so we can determine block
+     size and other information. (There are cute ways around this that
+     make for a great extension: ask us!)
 
-We are going to do it in a stupid way so that we're more sure it's
-correct.  A great extension is doing it more intelligently.
+We are going to accomplish both of these tasks in simple-stupid ways so
+that we're more sure the code is correct.  A great extension is doing
+it more intelligently.
 
-What we are doing is:
-  1. For each allocation call to `ckalloc`: allocate enough to prepend
-     a `ckalloc.h:hdr_t` to the block and add that block to a list of
-     allocated pointers.
-
-  2. On each deallocation call to `ckfree`: check that the block is
-     allocated, remove it from the allocated list, an call `kr_free`
-     on it.
+Mechanically:
+  1. For each allocation call to `ckalloc`: 
+     - Allocate enough additional memory so you can add a `ckalloc.h:hdr_t` 
+       to the front of the block (used for bookkeeping) and:
+     - Add that block to a list of allocated pointers.
+  2. On each deallocation call to `ckfree(B)`: 
+     - Check that the block B is allocated;
+     - remove B from the allocated list;
+     - call `kr_free(B)` on it.
 
 What to write:
-  1. The interface is in `code-leak+gc/ckalloc.h` the starter code in 
+  1. The interface is in `2-code-leak+gc/ckalloc.h` the starter code in 
      `ckalloc.c`.
   2. There are some simple accessors you should implement.
 
 Here's a dumb linked list removal to save you time if that's an issue:
-
+```c
     static void list_remove(hdr_t **l, hdr_t *h) {
         assert(l);
         hdr_t *prev = *l;
@@ -102,13 +115,15 @@ Here's a dumb linked list removal to save you time if that's an issue:
         }
         panic("did not find %p in list\n", h);
     }
+```
 
 Invariants:
-  1. `ckalloc`: before you add it to the allocated list `ck_ptr_is_alloced`
-     should fail, after you add it `ck_ptr_is_alloced` should succeed.
-  2. `ckfree`: before you free it, `ck_ptr_is_alloced(ptr)` should
-     return 1; after you remove it from the allocated list, it should
-     return 0.  The state should be `ALLOCED`.
+  1. `ckalloc`: before you add the returned block B to the allocated list 
+     `ck_ptr_is_alloced(B)` should fail, after you add B `ck_ptr_is_alloced(B)`
+     should succeed.
+  2. `ckfree(B)`: before you free B, `ck_ptr_is_alloced(B)` should
+     return 1; after you remove B from the allocated list, it should
+     return 0.  B's state should be `ALLOCED`.
 
 ---------------------------------------------------------------------------
 ### Part 2: leak detection `ck-gc.c` and `gc-asm.S`
@@ -125,17 +140,14 @@ of reclaiming them, emits error messages that they are unreachable.
 looks like in practice.)
 
 The classic mark-and-sweep algorithm:
-
   1. Scan through the set of objects pointed-to by the "root set" ---
      pointers contained in the data segment (bss and data: 
      see `libpi/include/memmap.h`), stack locations, and
      registers.
-
   2. When you see an object for the first time you mark it (the
      "mark" in "mark-and-sweep") and, also, recursively scan all
      pointers it contains.  If an object has already been marked,
      skip it.
-
   3. When steps (1) and (2) finish, scan all blocks in the heap: if a
      block has not been marked, you know it cannot be legally reached
      by the program and so must be garbage (in our case: lost).
@@ -143,6 +155,7 @@ The classic mark-and-sweep algorithm:
 At risk of overkill, but in an attempt to reduce confusion, here's
 simple pseudo-code:
 
+```
     mark_and_sweep()
        # all other memory locations must be reachable 
        # from these starting points.
@@ -171,7 +184,7 @@ simple pseudo-code:
                 free(blk);
         }
     }
-
+```
 
 This trivial graph traversal algorithm would be on the easier end of CS107
 assignments.  The thing that makes it tricky for C is that it requires
@@ -179,13 +192,12 @@ being able to grab a random chunk of memory and enumerate all the legal
 pointers it contains.  Of course, for C we have no way of knowing the
 types of each byte and, thus, we can't tell which 32-bit words on the
 pi contain pointers or not.    If we miss even a single pointer we can
-potentially think a block is free  when it is not.  Such omissions will
+potentially think a block is free when it is not.  Such omissions will
 cause false error reports (false positives) for our leak detector and,
 worse, very nasty use-after-free errors for the garbage collector if we
 reclaim memory that is still being used.
 
 Fortunately, we can use a hack from Boehm:
-
   - Treat all any pointer-sized and pointer-aligned word (on the pi:
     4-byte aligned and 4-byte sized) as a potential pointer and its
     contained value as an address.  If this potential-address falls
