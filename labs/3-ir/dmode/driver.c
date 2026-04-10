@@ -1,14 +1,5 @@
-// simple example of using rising and falling edge interrupts.
-//   - connect GPIO <in_pin> to GPIO <out_pin> using a jumper
-//     (i.e., have it "loopback")
-//   - if out_pin=0: write a 1 and check we get a rising edge 
-//     interrupt.
-//   - if out_pin=1: write a 0 and check we get a falling 
-//     edge interrupt.
 #include "rpi.h"
 #include "buttons.h"
-#include "rpi-interrupts.h"
-#include "rpi-inline-asm.h"
 
 enum {
     PIN = 21,         // input pin: "S" on IR
@@ -119,13 +110,16 @@ void print_signal(Signal s) {
     }
 }
 
+///////////////////////////
 
- 
-// called from <interrupt-asm.S> on interrupt.
-void interrupt_vector(unsigned pc) {
-    dev_barrier();
-    if(gpio_event_detected(PIN)) {
-        gpio_event_clear(PIN);
+void notmain(void) {
+
+    // set pullup to get ready for read
+    gpio_set_input(PIN);
+    gpio_set_pullup(PIN);
+
+    // block until something happens
+    while (1) {
         uint32_t pin_val, time;
         while((pin_val = gpio_read(PIN)) == 1) {};
 
@@ -162,30 +156,9 @@ void interrupt_vector(unsigned pc) {
                 break;
             }
         }
+
         printk("Got signal: %s\n", button_to_str(out));
     }
-    dev_barrier();
+
 }
 
-// initialize all the interrupt stuff. 
-void notmain() {
-    // install interrupt vector.
-    extern uint32_t interrupt_vec[];
-    int_vec_init(interrupt_vec);
-
-    gpio_set_input(PIN);
-
-    // set interupts on both rising and falling edge.
-    gpio_int_falling_edge(PIN);
-    gpio_int_rising_edge(PIN);
-    // if we don't clear this: events seem sticky so 
-    // will trigger when enable general interrupts.
-    gpio_event_clear(PIN);
-
-    output("about to enable interrupts\n");
-    cpsr_int_enable();
-
-
-    while (1) {
-    }      
-}

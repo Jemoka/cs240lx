@@ -77,7 +77,7 @@ void notmain(void) {
         tr_t l = tr_mk();
 
         // again: default is 1, so nothing is happening.
-        while((pin_val = gpio_read(pin)) == 1)
+        while((pin_val = gpio_read(pin)) == 1) 
             ;
     
         // read values until timeout
