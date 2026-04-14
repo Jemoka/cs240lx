@@ -1,0 +1,57 @@
+FOUND: </dev/ttyUSB0>
+opened tty port </dev/ttyUSB0>.
+pi-install: tty-usb=</dev/ttyUSB0> program=<./tests/part1-test8-bugs.bin> about to boot
+TRACE:simple_boot: sending 13584 bytes, crc32=a08ec359
+waiting for a start
+putting code
+bootloader: Done.
+listening on ttyusb=</dev/ttyUSB0>
+redzone checking: init
+test4: use after free
+TRACE:ck_heap_errors:going to check heap
+TRACE:ck_heap_errors:SUCCESS: checked 64 blocks, detected no errors
+TRACE:notmain:SUCCESS heap checked out
+TRACE:ck_heap_errors:going to check heap
+TRACE:ck_heap_errors:SUCCESS: checked 64 blocks, detected no errors
+TRACE:notmain:SUCCESS heap checked out
+TRACE:ck_heap_errors:going to check heap
+TRACE:ck_heap_errors:SUCCESS: checked 64 blocks, detected no errors
+TRACE:ck_heap_errors:going to check heap
+TRACE:mem_check:ERROR:Freed block 64 [0x17b2b0] corrupted at offset 4
+TRACE:hdr_print:	logical block id=64, [addr=0x17b2b0] nbytes=8
+TRACE:hdr_print:	Block allocated at: tests/part1-test8-bugs.c:notmain:29
+TRACE:mem_check:ERROR:Freed block 64 [0x17b2b0] corrupted at offset 5
+TRACE:hdr_print:	logical block id=64, [addr=0x17b2b0] nbytes=8
+TRACE:hdr_print:	Block allocated at: tests/part1-test8-bugs.c:notmain:29
+TRACE:mem_check:ERROR:Freed block 64 [0x17b2b0] corrupted at offset 6
+TRACE:hdr_print:	logical block id=64, [addr=0x17b2b0] nbytes=8
+TRACE:hdr_print:	Block allocated at: tests/part1-test8-bugs.c:notmain:29
+TRACE:mem_check:ERROR:Freed block 64 [0x17b2b0] corrupted at offset 7
+TRACE:hdr_print:	logical block id=64, [addr=0x17b2b0] nbytes=8
+TRACE:hdr_print:	Block allocated at: tests/part1-test8-bugs.c:notmain:29
+TRACE:check_list:	Wrote block after free!
+TRACE:ck_heap_errors:checked 64 blocks, detected 1 errors
+TRACE:notmain:found error
+TRACE:ck_heap_errors:going to check heap
+TRACE:ck_heap_errors:SUCCESS: checked 64 blocks, detected no errors
+TRACE:ck_heap_errors:going to check heap
+TRACE:mem_check:ERROR:Freed block 64 [0x17b2b0] corrupted at offset 8
+TRACE:hdr_print:	logical block id=64, [addr=0x17b2b0] nbytes=8
+TRACE:hdr_print:	Block allocated at: tests/part1-test8-bugs.c:notmain:29
+TRACE:mem_check:ERROR:Freed block 64 [0x17b2b0] corrupted at offset 9
+TRACE:hdr_print:	logical block id=64, [addr=0x17b2b0] nbytes=8
+TRACE:hdr_print:	Block allocated at: tests/part1-test8-bugs.c:notmain:29
+TRACE:mem_check:ERROR:Freed block 64 [0x17b2b0] corrupted at offset 10
+TRACE:hdr_print:	logical block id=64, [addr=0x17b2b0] nbytes=8
+TRACE:hdr_print:	Block allocated at: tests/part1-test8-bugs.c:notmain:29
+TRACE:mem_check:ERROR:Freed block 64 [0x17b2b0] corrupted at offset 11
+TRACE:hdr_print:	logical block id=64, [addr=0x17b2b0] nbytes=8
+TRACE:hdr_print:	Block allocated at: tests/part1-test8-bugs.c:notmain:29
+TRACE:ck_heap_errors:checked 64 blocks, detected 1 errors
+TRACE:notmain:found error
+TRACE:notmain:SUCCESS heap checked out
+DONE!!!
+
+Saw done
+
+bootloader: pi exited.  cleaning up

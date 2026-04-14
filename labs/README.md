@@ -18,12 +18,14 @@ Labs:
    - [2-jit-derive](2-jit-derive): reverse engineer machine code encodings
      using the assembler.
    - [3-ir](3-ir): simple IR remote control reverse engineering.
-
+   - [4-malloc+gc](4-malloc+gc): build a Boehm style garbage collector.
+   - [5-debug-alloc](5-debug-alloc): build a simple debugging allocator.
+     We use this for our later checking tools.
+   - [6-pcb-lab](6-pcb): Parthiv Krishna (made the "Parthiv Board" we've
+     been using for years as a 240lx final project, now at NVIDIA) is
+     doing his widely-aclaimed pcb lab.  Very useful for final projects!
 
 Possible labs, many more TBA (note: these aren't checked in yet):
-   - [5-malloc+gc](5-malloc+gc): build a Boehm style garbage collector.
-   - [6-debug-alloc](6-debug-alloc): build a simple debugging allocator.
-     We use this for our later checking tools.
    - [7-imu-i2c](7-imu-i2c): another fun device lab. Write the driver
      for an MPU-6050 accelerometer and gyroscope from the data sheet.
    - [8-i2c](8-i2c): write an I2C driver.  Now all the code for the 
