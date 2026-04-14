@@ -288,5 +288,6 @@ void * custom_c_runtime_init(void);
 // where the final end of the [data+code+extra] is.
 void *program_end(void);
 
+#include "rpi-rand.h"
 
 #endif
