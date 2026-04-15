@@ -1,6 +1,5 @@
-## Building a redzone allocator.
-
-##### Updates: new extension!
+---------------------------------------------------------------------
+### Update: new extension!
 
 For this extension: 
    1. Use gcc's `-finstrument-functions` to instrument the code;
@@ -23,8 +22,10 @@ void __cyg_profile_func_exit(void *this_fn, void *call_site);
 
 You can look at `example-inst-fn/test-fn.c` for an example
 to print call graphs.
+---------------------------------------------------------------------
 
-### Overview
+## Building a redzone allocator.
+
 
 Memory corruption bugs suck.  While some people use Rust, we're going
 to try to make C less bad by attempting to check every load and store
