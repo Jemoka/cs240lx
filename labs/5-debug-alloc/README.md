@@ -23,8 +23,8 @@ void __cyg_profile_func_exit(void *this_fn, void *call_site);
 
 You can look at `example-inst-fn/test-fn.c` for an example
 to print call graphs.
----------------------------------------------------------------------
 
+---------------------------------------------------------------------
 ## Lab: Build a redzone allocator.
 
 
