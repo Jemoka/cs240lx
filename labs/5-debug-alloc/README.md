@@ -1,5 +1,28 @@
 ## Building a redzone allocator.
 
+### New extension: use gcc's `-finstrument-functions`
+
+For any file compiled with the `finstrument-functions` flag:
+```
+gcc -finstrument-functions -c file.c
+```
+
+The `gcc` compiler will insert every routine with two calls:
+```c
+// Called immediately after entering a function.
+void __cyg_profile_func_enter(void *this_fn, void *call_site);
+// — Called just before exiting a function. ￼
+void __cyg_profile_func_exit(void *this_fn, void *call_site);
+```
+
+You can use this to walk the allocated and free lists to check for
+redzone corruption on each function call/return.
+
+You can look at `example-inst-fn/test-fn.c` for an example
+to print call graphs.
+
+### Overview
+
 Memory corruption bugs suck.  While some people use Rust, we're going
 to try to make C less bad by attempting to check every load and store
 for safety.

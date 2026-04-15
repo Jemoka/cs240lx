@@ -1,7 +1,8 @@
 PROGS := test-fn.c
 
 CFLAGS += -finstrument-functions
-CFLAGS += -finstrument-functions-exclude-file-list=libpi
+# can blacklist everything in libpi
+# CFLAGS += -finstrument-functions-exclude-file-list=libpi
 
 # COMMON_SRC += no-instrument.c
 
