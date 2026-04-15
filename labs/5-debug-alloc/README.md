@@ -1,8 +1,12 @@
 ## Building a redzone allocator.
 
-#### Updates
+##### Updates: new extension!
 
-***New extension: use gcc's `-finstrument-functions`***
+For this extension: 
+   1. Use gcc's `-finstrument-functions` to instrument the code;
+   2. Then walk the allocated and free lists to check for redzone
+      corruption at each function call/return.
+
 For any file compiled with the `finstrument-functions` flag:
 ```
 gcc -finstrument-functions -c file.c
@@ -16,8 +20,6 @@ void __cyg_profile_func_enter(void *this_fn, void *call_site);
 void __cyg_profile_func_exit(void *this_fn, void *call_site);
 ```
 
-You can use this to walk the allocated and free lists to check for
-redzone corruption on each function call/return.
 
 You can look at `example-inst-fn/test-fn.c` for an example
 to print call graphs.
