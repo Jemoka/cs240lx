@@ -1,7 +1,8 @@
 ## Building a redzone allocator.
 
-### New extension: use gcc's `-finstrument-functions`
+#### Updates
 
+***New extension: use gcc's `-finstrument-functions`***
 For any file compiled with the `finstrument-functions` flag:
 ```
 gcc -finstrument-functions -c file.c
