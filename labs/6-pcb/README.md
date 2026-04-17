@@ -1,5 +1,7 @@
 # PCB (KiCAD) Lab v2 by Parthiv
 
+NOTE: KiCAD 10 was released last month (March 2026). I made this lab on KiCAD 9, but feel free to try KiCAD 10 and let me know if anything major has changed.
+
 ## Overview
 This lab will be focused on designing printed circuit boards (PCBs), which many students in 140e/240lx/340lx have found useful over the years in final projects to help reduce wiring complexity and increase hardware reliability. The focus of the lab will be on how to replace a bundle of wires with an inexpensive PCB, and not on how to actually design electrical circuits (which is a much more complicated discussion). For the most part, you can get by just connecting breakout boards together. If you want to integrate a piece of hardware without a breakout board, most datasheets will include an "application circuit" that will show you what supporting hardware is needed.
 
@@ -369,7 +371,125 @@ You have silkscreen that is either drawn off the edge of the board, or overlaps 
 
 ## Step 3: Manufacture the PCB
 
-Coming soon. If you get to this point and it's not ready, refer to a previous lab. I just need to dry run and make sure that everything is still the same. 
+The steps below are for JLCPCB, which is a PCB fabrication/assembly company in China that I've used for many years. Their prices are hard to beat, though there are many other companies that offer similar services (e.g. PCBWay). Feel free to addapt this to another vendor if you see something promising, I'd love to hear what your experience is. 
+
+With JLCPCB, you can just fabricate PCBs (i.e. print the boards without any components attached), but you can also have them assemble the boards (solder some/all of the parts to the board). When dealing with small surface-mount parts, or large quantities of PCBs, it can be worthwhile to have them assemble the boards for you. You can view their full library of parts [here](https://jlcpcb.com/parts). If you see any references to "LCSC", this was what JLCPCB parts used to be called a few years ago.
+
+### Install KiCAD JLCPCB Tools
+
+This extension will make it a lot simpler to generate the files that JLCPCB needs.
+
+Follow the instructions [here](https://github.com/Bouni/kicad-jlcpcb-tools?tab=readme-ov-file#installation-) to install `kicad-jlcpcb-tools`. Reproduced:
+
+1. From the main KiCAD window, visit `Tools` -> `Plugin and Content Manager`
+2. Click `Manage` next to the dropdown (which is likely pre-populated with `KiCad official repository`.
+3. In the window that pops up, add `Bouni's KiCad repository` at 
+    ```
+    https://raw.githubusercontent.com/Bouni/bouni-kicad-repository/main/repository.json
+    ```
+
+    ![Production Repo](./img/production_repo.png)
+
+4. Hit Save.
+5. Select Bouni's KiCad repository in the dropdown, then select `KiCAD JLCPCB tools` and Install it.
+    ![Production Installation](./img/production_install.png)
+6. Click `Apply Pending Changes` in the bottom right corner. This should install the extension.
+7. Close out of the Plugin and Content Manager.
+
+### The Goal 
+ 
+We will be producing files for both fabrication and assembly.
+* For fabrication, we create a set of Gerber files. Gerber is an ASCII vector format that is used to describe each layer of the board. For example, `F.Cu` gets its own Gerber file, as does `B.Silkscreen`. At this point, the board layout we've done already contains all the info needed to produce these.
+* For assembly, we create a CPL (Component Placement List) file, which is just a CSV describing the position and rotation of each component. This is indexed by identifier (e.g. `C1` or `J2`). KiCAD already has the info needed for this. We also need a BOM (Bill of Materials) file, which is a CSV describing what JLCPCB part number should be placed for each component. This is also indexed by identifier. This is the thing that's missing which we need to assign here. 
+
+### Assigning JLCPCB Part Numbers
+
+Now, we'll assign part numbers for JCLPCB assembly.
+
+1. Go to the PCB editor, then open `Tools -> External Plugins -> JLCPCB Tools`.
+2. It will take a few seconds to download JLCPCB's part library. Afterwards, you should see a window like this, with a list of identifiers and currently empty columns with the LCSC (JLCPCB parts) info.
+
+![Production Empty](./img/production_empty.png)
+
+3. For each part, search the [JLCPCB parts site](https://jlcpcb.com/parts) using the description of your part and the footprint. **It is imperative that you verify that the footprint matches.** Particularly for more complex parts (integrated circuits, sensors, RGB LEDs, etc.), things can come with multiple footprints and pin layouts. You can always create a new footprint using the `Footprint Editor` (left as an exercise to the reader) if needed. I selected this RGB LED by searching `SK6812 PLCC4` which is the name of the LED (`SK6812`) and the footprint type (`PLLC4`) as seen in the list of parts in the JLCPCB tools window.
+
+![Production Footprint](./img/production_footprint.png)
+
+4. Copy the JLCPCB part number (e.g. `C5378720`) to your clipboard.
+
+4. Click the identifier you want to apply the part number to. Ensure `Auto-select Alike` is enabled on the right so other idenfiers with the same footprint and value should also get selected. Right click, then `Paste LCSC`.
+
+![Production Assign](./img/production_assign.png)
+
+5. Repeat 3/4/5 until all your parts are assigned. Some that I found on a cursory look:
+
+    | Description | JLC Part # |
+    |-------------|------------|
+    | 2x20 header | C2977589   |
+    | 1x5 header  | C50950     |
+    | RGB LED     | C5378720   |
+    | 100nF cap   | C1590      |
+
+    It's better to find "Basic" parts when possible (not "Extended") as they cost less to assemble. This is because Basic parts are kept in stock closer to the pick and place machines, I think. For the most part, it's just standard surface mount capacitors/resistors that are Basic. If you're doing something more custom, feel free to ask me if you have questions. Here's what mine looked like when done. 
+
+![Production Complete](./img/production_complete.png)
+
+6. Click `Save Mappings` on the right.
+
+### Generate Production Files
+
+We're now ready to generate the production files for JLCPCB!
+
+1. Going back to your PCB view, select a silkscreen layer and add some text (shortcut: `Ctrl+Shift+T`). The text should say `JLCJLCJLCJLC`; this will get replaced by JLCPCB with the serial number of your order. I like to put it on the back, out of the way of anything else.
+
+![Production JLCJLCJLCJLC](./img/production_jlcjlcjlcjlc.png)
+
+2. Back in the JLCPCB tools window, click `Generate` in the top left. It will run DRC for you, and you may get an error about `--refill-zones` not working. If that happens, ensure you refill zones (`B` in the PCB editor) and run DRC, then go to the JLCPCB tools `Settings` and disable the option to `Force DRC check before Gerber export`. 
+
+3. You should see a log about where the gerber files were generated. It's good practice to go to KiCAD's main window, open the `Gerber Viewer`, and then go to `File -> Open Gerber Plot File(s)`, and navigate to/select all the `gbr` files in the generated `jlcpcb/gerber` directory. Ensure that things look reasonable, you can click through the various layers on the right side.
+
+![Production Gerber](./img/production_gerber.png)
+
+### Upload to JLCPCB
+
+Now, let's go through JLCPCB to set up the manufacturing run. It's good practice to do this, even if you won't ultimately order. 
+
+1. Visit the [JLCPCB quote page](jlcpcb.com/quote) and click `Add Gerber File`. Navigate to your JLCPCB project, and find the `jlcpcb/production_files` directory. In there, you'll find a zip of your gerbers which you can upload directly. 
+
+2. You can leave most of the fabrication options as the default, but feel free to choose a new PCB color (or change any of the other knobs) if you'd like. 
+
+![Production Order Fabrication](./img/production_order_fabrication.png)
+
+3. On the `Mark on PCB` option, set this to `Order Number(Specify Position)`. This'll put your order number wherever the `JLCJLCJLCJLC` text from earlier was.
+
+4. Set up assembly. Note that if you're doing assembly, you can upgrade to 24 hour fabrication for free on the right side. If you just need parts on one side, then Economic works. Otherwise you'll need Standard. A reasonable compromise could be to assemble all your surface mount parts on one side using Economic, and then solder your backside through-hole parts (generally just the 2x20 for raspi) by hand. When I make 150 boards for 140e, I just have them do the full thing, though.
+
+You can select `PCBA Qty` to be less than the number of boards you're fabricating. I enable `Confirm Parts Placement` (they email you a final render of the parts placement) but leave everything else default usually. 
+
+![Production Order Assembly](./img/production_order_assembly.png)
+
+5. Hit `Next` and sign in / create account. Hit `Next` until you reach the `Bill of Materials` page.
+
+6. Upload the BOM and CPL files from your `jlcpcb/production_files` generated directory. Hit `Process BOM & CPL`. 
+
+7. You should see a processed BOM linking to the various JLCPCB parts. If you have chosen something with insufficient stock, it should tell you here and allow you to reassign.
+
+![Production BOM](./img/production_bom.png)
+
+8. Hit `Next` to get to the `Component Placements`. You'll see a 3D viewer like we had in KiCAD. The vast majority of the time, parts will be rotated wrong. Note here that the UART header is rotated 90 degrees, but on top of that, the LEDs are also rotated 180 degrees. The latter one is more subtle. You can tell because there's a "notch" in the silkscreen for pin 1, and this doesn't align with the "arrow" in the 3D model for pin 1. In general, that's your best bet for confirming part rotation for integrated circuits like this. 
+
+![Production CPL Wrong](./img/production_cpl_wrong.png)
+
+You'll also see that for this model, the VDD pin is specified and I can cross-reference with the KiCAD PCB design.
+
+For simpler polarity-sensitive components (electrolytic capacitors, single-color LEDs, diodes, etc.), JLCPCB generally shows a pretty obvious `+` on the positive side.
+
+9. Right click on the incorrect parts one-by-one, and rotate them the appropriate amount to correct. 
+
+![Production CPL Correct](./img/production_cpl_correct.png)
+
+10. Hit `Next`, and you should get your quote and be able to `Save to Cart`! Congrats!
+
 
 ## Step 4: Extensions
 

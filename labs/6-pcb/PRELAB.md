@@ -2,6 +2,8 @@
 
 This lab will be focused on designing printed circuit boards (PCBs), which many students in 140e/240lx/340lx have found useful over the years in final projects to help reduce wiring complexity and increase hardware reliability. The focus of the lab will be on how to replace a bundle of wires with an inexpensive PCB, and not on how to actually design electrical circuits (which is a much more complicated discussion). 
 
+NOTE: KiCAD 10 was released last month (March 2026). I made this lab on KiCAD 9, but feel free to try KiCAD 10 and let me know if anything major has changed.
+
 ## Install KiCAD
 
 KiCAD is the software we'll be using in order to design the PCBs for the lab. It's very popular in the hobby electronics community. Please follow the instructions at [https://www.kicad.org/download/](https://www.kicad.org/download/) for your OS. It is open source so it should be possible but potentially annoying to build if your OS isn't listed.
@@ -12,7 +14,6 @@ I assume `Ctrl` becomes `Cmd` on mac.
 * `Ctrl+S`: Save (do often!)
 * `Ctrl+Z`: Undo
 * `Ctrl+Y`: Redo
-
 
 ## Select Hardware
 
