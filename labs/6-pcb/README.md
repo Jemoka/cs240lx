@@ -321,6 +321,8 @@ Time to create the PCB! For all of these steps, you don't have to match the exac
 
 Click Run DRC. If you have errors, go to the DRC Errors section below for common errors. For each, I'd recommend you zoom in super close, then click the entry in the DRC window. You will see an arrow in the middle of your screen. Address the issue and then click Run DRC in the window again. If there are other errors, ask me and I can help you out. 
 
+If you get an error about the two +3V3 pads not being connected, this is because we don't actually use those for anything. If you'd like, you can disconnect the +3V3 in your schematic, mark it not-connected, and then return to the PCB and Update PCB from Schematic. Then, the connection requirement should disappear and DRC will be clean.
+
 ### Routing Tips
 
 #### Clearance
