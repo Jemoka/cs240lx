@@ -1,0 +1,5 @@
+Comment,Designator,Footprint,LCSC,Quantity
+100nF,"C1,C2,C3",C_0603_1608Metric,C1590,3
+Raspberry_Pi_2_3,J1,PinSocket_2x20_P2.54mm_Vertical,C2977589,1
+SK6812,"D1,D2,D3",LED_SK6812_PLCC4_5.0x5.0mm_P3.2mm,C5378720,3
+UART,J2,PinSocket_1x05_P2.54mm_Horizontal,C50950,1
