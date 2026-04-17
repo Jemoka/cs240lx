@@ -207,7 +207,7 @@ Time to create the PCB! For all of these steps, you don't have to match the exac
 
     If you have zero warnings/errors, then you can "Close" the window that popped up, and then click anywhere to place the mess of components.
 
-    ![PCB from Schematic](img/pcb_fromsch.png)
+    ![PCB from Schematic](img/pcb_from_sch.png)
 
     You will see a 2x20 pin header for the Pi, 1x5 header for the UART, LEDs, capacitors, and any additional headers/components for your chosen hardware.
 
