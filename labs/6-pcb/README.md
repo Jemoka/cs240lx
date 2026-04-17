@@ -261,7 +261,7 @@ Time to create the PCB! For all of these steps, you don't have to match the exac
 
 5. A common practice in PCB design is to make (almost) the entire front of the board be connected to your power rail, and (almost) the entire back of the board be connected to your ground rail (or vice versa). This helps you avoid having to manually connect every power and ground together, sort of like how we just connected them to the GND and +5V symbols on the schematic to avoid a ratsnest of wires between the power pins.
 
-    We will do that now. Click on the `F.Cu` layer and do `Ctrl+Shift+Z` (mac may be `Cmd` instead of `Ctrl`) to open a window for "copper zone". Ensure that the `F.Cu` layer is selected on the left, then select the `+5V` net.
+    We will do that now. Click on the `F.Cu` layer and do `Ctrl+Shift+Z` (mac: `Option+Z`) to open a window for "copper zone". Ensure that the `F.Cu` layer is selected on the left, then select the `+5V` net.
 
     ![PCB Zone Config](img/pcb_zoneconfig.png)
 
