@@ -88,6 +88,14 @@ Please review [PRELAB.md](./PRELAB.md). If interested, you can also check out a 
 
     Click on OK and create it. 
     
+
+    ```
+    If you can't find the library (seems to be happening on KiCAD 10), try the following workaround: 
+    1. Go to `Preferences -> Manage Symbol Libraries` and then click `Project Specific Libraries`
+    2. Delete the custom library if it's present.
+    3. Re-add the library.
+    ```
+
     On the left of the main window (to the right of the list of libraries), right click on the grid and select Edit Grids.
 
     ![Symbol Grid](img/sym_grid.png)
