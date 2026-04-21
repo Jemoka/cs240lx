@@ -10,6 +10,11 @@ Overview:
     of the class speeds up.
 
 
+NOTE: 
+  - This year since everyone is pretty blasted from 140E we're starting
+    with more device labs than usual b/c they are (1) fun, (2) not too
+    bad for tricky concepts and (3) useful for final projects
+
 Labs:
    - [0-pi-setup](0-pi-setup/): pi setup.
    - [1-dynamic-code-gen](1-dynamic-code-gen/): how 
@@ -24,10 +29,10 @@ Labs:
    - [6-pcb-lab](6-pcb): Parthiv Krishna (made the "Parthiv Board" we've
      been using for years as a 240lx final project, now at NVIDIA) is
      doing his widely-aclaimed pcb lab.  Very useful for final projects!
-
-Possible labs, many more TBA (note: these aren't checked in yet):
    - [7-imu-i2c](7-imu-i2c): another fun device lab. Write the driver
      for an MPU-6050 accelerometer and gyroscope from the data sheet.
+
+Possible labs, many more TBA (note: these aren't checked in yet):
    - [8-i2c](8-i2c): write an I2C driver.  Now all the code for the 
      for the previous MPU lab is yours!
    - [9-profiler](9-profiler): use single-step debug hardware to build
