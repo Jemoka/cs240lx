@@ -1,17 +1,5 @@
 ## Using an i2c mems-based IMU (accelerometer + gyroscope)
 
-### Errata
-
-Note: 
- - We updated libpi to use floating point halfway through the
-   lab.  This means if you do a pull and compile using the staff
-   staff-mpu-6050.o it won't link.  We added a staff-mpu-6050-fp.o that
-   should work.
-
-
-### Overview
-
-
 <p align="center">
   <img src="images/robot-pi.png" width="450" />
 </p>
@@ -72,16 +60,27 @@ Some other documents in no particular order:
 
 #### Checkoff
 
- - You should implement the `todo` parts of `code/mpu-6050.c` and
-   make sure that both `driver-accel.c` and `driver-gyro.c` give
-   reasonable answers.
-
- - Implement some kind of extension.  
+Four parts:
+ 1. Accel: You should implement the `todo` parts of `code/mpu-6050.c` and
+    make sure that both `driver-accel.c` works.
+ 2. Gyro (`driver-gyro.c`) same: make sure the output gives 
+    reasonable answers.
+ 3. Self test: bugs in measurement devices often are exceptionally bad b/c
+    the code won't cause a crash, it will just output garbage.  Even
+    worse, broken code can still often work, and only sometimes produce
+    garbage.  Fortunately, many devices have a "self-test" procedure
+    you can use to sanity check your code (and the hardware).  Do the
+    self-test for both gyro and accel and make sure your code passes.
+    I used to always skip such things --- in part because that part of
+    the datasheet is often the most poorly written.  But I did it once,
+    found a bunch of bugs in "working" code, and now always do it or
+    regret it later.  I'll be shocked if you don't find any bugs.
+ 4. Implement some kind of extension.  
     - A trivial one is getting the temperature.  Compare it with
       the pi temperature (obtained using the mailbox).
-    - A cool one that Joseph and Yash did last year was doing the step 
-      counter (I believe using the motion detection p 39, but check
-      with Joseph!).  
+    - A cool one that Joseph and Yash did when they took LX was doing
+      the step counter (I believe using the motion detection p 39,
+      but check with Joseph!).
     - A standard, useful one would be to add interrupts and put the 
       readings in a circular queue (p 27-29 of the register map).  
     - A useful one would be figuring out how to use the self-test.
@@ -98,7 +97,9 @@ Some other documents in no particular order:
 Alternatively, you can just do hard (Daniel) mode:
  - You can easily ignore our starter code and write everything from
    scratch.  The needed interface is narrow (reset, initialize, has-data,
-   read-data) without any datastructures.  It's an interesting exercise.
+   read-data) without any fancy data structures.  It's an interesting
+   exercise.
+
 ---------------------------------------------------------------------------
 ### Incomplete cheat sheet of page numbers.
 
@@ -243,33 +244,9 @@ Similar to accel:
 Use the datasheet and application note.  Start with the simple cookbook
 example they give and make sure your stuff looks reasonable!
 
----------------------------------------------------------------------------
-### Extension: display the readings using your light strip or LED
-
-The nice thing about the light strip is that you can do high-dimensional displays easily.
-One dumb way:
-   - give the accel half and the gyro half (or do not!  just map their coordinate system
-     to the entire thing).
-   - map the 3-d point of each reading to a location.
-   - map the velocity of the point (or the accel, no pun) to a color.
-   - display!
 
 ---------------------------------------------------------------------------
-### Extension: write your own hardware or bit-banged i2c
-
-The wikipedia for the i2c protocol gives a pretty easy pseudo-code you
-can use to do a bit-banged version.
-
-The broadcom document pages 28---36 describes the hardware i2c.
-
-You'll notice that the i2c datasheet looks similar to UART (fixed-size
-FIFO queue for transmit and receive, the need to check if data or space
-is available, control over speed, errata, etc).  The more devices you
-do the more you'll notice they share common patterns.  The nice thing:
-there exists an N s.t. after doing N devices, doing N+1 is pretty quick.
-
----------------------------------------------------------------------------
-### Extension: self test
+### Part 3: self test
 
 A constant problem with devices checking if the output is garbage.
 This can happen because the hardware is broken, it's a cheap counterfeit,
@@ -346,6 +323,32 @@ We changed the repo to use floating-point by default.
 If you need the the floating point math library, look in:
 [../../guides/using-float](../../guides/using-float).  Hopefully "it
 just works" after you change the Makefile.
+
+---------------------------------------------------------------------------
+### Extension: display the readings using your light strip or LED
+
+The nice thing about the light strip is that you can do high-dimensional displays easily.
+One dumb way:
+   - give the accel half and the gyro half (or do not!  just map their coordinate system
+     to the entire thing).
+   - map the 3-d point of each reading to a location.
+   - map the velocity of the point (or the accel, no pun) to a color.
+   - display!
+
+---------------------------------------------------------------------------
+### Extension: write your own hardware or bit-banged i2c
+
+The wikipedia for the i2c protocol gives a pretty easy pseudo-code you
+can use to do a bit-banged version.
+
+The broadcom document pages 28---36 describes the hardware i2c.
+
+You'll notice that the i2c datasheet looks similar to UART (fixed-size
+FIFO queue for transmit and receive, the need to check if data or space
+is available, control over speed, errata, etc).  The more devices you
+do the more you'll notice they share common patterns.  The nice thing:
+there exists an N s.t. after doing N devices, doing N+1 is pretty quick.
+
 
 ---------------------------------------------------------------------------
 ### Extension: multiple devices + i2c
