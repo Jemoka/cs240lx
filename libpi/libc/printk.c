@@ -4,7 +4,8 @@
 #   define putchar rpi_putchar
 #endif
 
-static void emit_val(unsigned base, uint32_t u) {
+
+static void emit_val(unsigned base, uint32_t u, unsigned padding) {
     char num[33], *p = num;
 
     switch(base) {
@@ -27,12 +28,55 @@ static void emit_val(unsigned base, uint32_t u) {
         panic("invalid base=%d\n", base);
     }
 
+    // emit any padding
+    while(padding > (unsigned)(p - &num[0])) {
+        putchar('0');
+        padding--;
+    }
+
     // buffered in reverse, so emit backwards
     while(p > &num[0]) {
         p--;
         putchar(*p);
     }
 }
+
+#ifdef RPI_FP_ENABLED
+
+// get the integer part of fp number.
+static long trunc(double d) {
+    return (long)d;
+}
+// we get 6 digits of precision.
+static unsigned fp_get_frac(double d) {
+    if(d < 0)
+        d = -d;
+    return trunc(d * 1000000.) % 1000000;
+}
+static long fp_get_integral(double d) {
+    return trunc(d);
+}
+static void __emit_float(double d) {
+    if(d < 0) {
+        putchar('-');
+        d = -d;
+    }
+    emit_val(10, fp_get_integral(d), 0);
+    putchar('.');
+
+    // changes below
+    unsigned frac = fp_get_frac(d);
+    unsigned divisor = 100000;
+    while (frac != 0 && frac / divisor == 0) {
+        putchar('0');
+        divisor /= 10;
+    }
+
+    emit_val(10, frac, 0);
+}
+
+#endif
+
 
 // a really simple printk. 
 // need to do <sprintk>
@@ -48,8 +92,8 @@ int vprintk(const char *fmt, va_list ap) {
             char *s;
 
             switch(*fmt) {
-            case 'b': emit_val(2, va_arg(ap, uint32_t)); break;
-            case 'u': emit_val(10, va_arg(ap, uint32_t)); break;
+            case 'b': emit_val(2, va_arg(ap, uint32_t), 0); break;
+            case 'u': emit_val(10, va_arg(ap, uint32_t), 0); break;
             case 'c': putchar(va_arg(ap, int)); break;
 
             // we only handle %llx.   
@@ -70,8 +114,23 @@ int vprintk(const char *fmt, va_list ap) {
                 uint32_t hi = x>>32;
                 uint32_t lo = x;
                 if(hi)
-                    emit_val(16, hi);
-                emit_val(16, lo);
+                    emit_val(16, hi, 0);
+                emit_val(16, lo, 0);
+                break;
+
+            case '0':
+                // only handle %0Nx
+                fmt++;
+                {
+                    int n = 0;
+                    while(*fmt >= '0' && *fmt <= '9') {
+                        n = n * 10 + (*fmt - '0');
+                        fmt++;
+                    }
+                    if(*fmt != 'x')
+                        panic("only handling %0Nx format, have: <%s>\n", fmt);
+                    emit_val(16, va_arg(ap, uint32_t), n);
+                }
                 break;
 
             // leading 0x
@@ -79,8 +138,7 @@ int vprintk(const char *fmt, va_list ap) {
             case 'p': 
                 putchar('0');
                 putchar('x');
-            case 'X': // ughly: no leading 0x [not right but b/w compat]
-                emit_val(16, va_arg(ap, uint32_t));
+                emit_val(16, va_arg(ap, uint32_t), 0);
                 break;
             // print '-' if < 0
             case 'd':
@@ -89,13 +147,26 @@ int vprintk(const char *fmt, va_list ap) {
                     putchar('-');
                     v = -v;
                 }
-                emit_val(10, v);
+                emit_val(10, v, 0);
                 break;
             // string
             case 's':
                 for(s = va_arg(ap, char *); *s; s++) 
                     putchar(*s);
                 break;
+            case 'f':
+#ifndef RPI_FP_ENABLED
+                panic("float not enabled!!!");
+#else
+                // XXX if you inline this, there is some
+                // problem that happens in interrupt handlers
+                // *EVEN IF* you don't use floats.  i'm 
+                // assuming its some issue w/ frame pointers
+                // or similar?
+                __emit_float(va_arg(ap, double));
+#endif
+                break;
+
             default: panic("bogus identifier: <%c>\n", *fmt);
             }
         }
@@ -125,3 +196,4 @@ void notmain(void) {
     new_printk("hello=<%s>\n", "hello");
 }
 #endif
+
