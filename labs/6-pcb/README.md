@@ -88,6 +88,14 @@ Please review [PRELAB.md](./PRELAB.md). If interested, you can also check out a 
 
     Click on OK and create it. 
     
+
+    ```
+    If you can't find the library (seems to be happening on KiCAD 10), try the following workaround: 
+    1. Go to `Preferences -> Manage Symbol Libraries` and then click `Project Specific Libraries`
+    2. Delete the custom library if it's present.
+    3. Re-add the library.
+    ```
+
     On the left of the main window (to the right of the list of libraries), right click on the grid and select Edit Grids.
 
     ![Symbol Grid](img/sym_grid.png)
@@ -199,7 +207,7 @@ Time to create the PCB! For all of these steps, you don't have to match the exac
 
     If you have zero warnings/errors, then you can "Close" the window that popped up, and then click anywhere to place the mess of components.
 
-    ![PCB from Schematic](img/pcb_fromsch.png)
+    ![PCB from Schematic](img/pcb_from_sch.png)
 
     You will see a 2x20 pin header for the Pi, 1x5 header for the UART, LEDs, capacitors, and any additional headers/components for your chosen hardware.
 
@@ -253,7 +261,7 @@ Time to create the PCB! For all of these steps, you don't have to match the exac
 
 5. A common practice in PCB design is to make (almost) the entire front of the board be connected to your power rail, and (almost) the entire back of the board be connected to your ground rail (or vice versa). This helps you avoid having to manually connect every power and ground together, sort of like how we just connected them to the GND and +5V symbols on the schematic to avoid a ratsnest of wires between the power pins.
 
-    We will do that now. Click on the `F.Cu` layer and do `Ctrl+Shift+Z` (mac may be `Cmd` instead of `Ctrl`) to open a window for "copper zone". Ensure that the `F.Cu` layer is selected on the left, then select the `+5V` net.
+    We will do that now. Click on the `F.Cu` layer and do `Ctrl+Shift+Z` (mac: `Option+Z`) to open a window for "copper zone". Ensure that the `F.Cu` layer is selected on the left, then select the `+5V` net.
 
     ![PCB Zone Config](img/pcb_zoneconfig.png)
 
@@ -312,6 +320,8 @@ Time to create the PCB! For all of these steps, you don't have to match the exac
 10. Almost done with the board! Let's run DRC (design rules checker) which will make sure our board is manufacturable. Go to Inspect->Design Rules Checker. In the window that pops up, enable "Test for parity between PCB and schematic" just to be sure.
 
 Click Run DRC. If you have errors, go to the DRC Errors section below for common errors. For each, I'd recommend you zoom in super close, then click the entry in the DRC window. You will see an arrow in the middle of your screen. Address the issue and then click Run DRC in the window again. If there are other errors, ask me and I can help you out. 
+
+If you get an error about the two +3V3 pads not being connected, this is because we don't actually use those for anything. If you'd like, you can disconnect the +3V3 in your schematic, mark it not-connected, and then return to the PCB and Update PCB from Schematic. Then, the connection requirement should disappear and DRC will be clean.
 
 ### Routing Tips
 

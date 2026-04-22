@@ -56,3 +56,19 @@ CFLAGS += -mtp=soft
 
 # for .S compilation so we can use the preprocessor.
 CPP_ASFLAGS =  -nostdlib -nostartfiles -ffreestanding   -Wa,--warn -Wa,--fatal-warnings -Wa,-mcpu=arm1176jzf-s -Wa,-march=armv6zk   $(INC)
+
+
+
+CFLAGS += -DRPI_FP_ENABLED -mfpu=vfp -mfloat-abi=softfp
+CPP_ASFLAGS += -DRPI_FP_ENABLED -mfpu=vfp -mfloat-abi=softfp
+
+LIBM_DIR ?=  $(CS240LX_2026_PATH)/lib/libm/
+LIBM ?=  $(LIBM_DIR)/libm-pi.a
+LIBM_INC ?=  -I$(LIBM_DIR) -I$(LIBM_DIR)/include/
+
+
+# for division
+# LIBS += $(LIBM)
+# CFLAGS += $(LIBM_INC)
+
+
