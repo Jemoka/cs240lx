@@ -1,3 +1,7 @@
+### Errata
+
+Note: if you get link errors, do a pull to get libm. 
+
 ## Using an i2c mems-based IMU (accelerometer + gyroscope)
 
 <p align="center">
