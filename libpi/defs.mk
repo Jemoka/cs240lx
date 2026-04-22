@@ -66,9 +66,5 @@ LIBM_DIR ?=  $(CS240LX_2026_PATH)/lib/libm/
 LIBM ?=  $(LIBM_DIR)/libm-pi.a
 LIBM_INC ?=  -I$(LIBM_DIR) -I$(LIBM_DIR)/include/
 
-
-# for division
-# LIBS += $(LIBM)
-# CFLAGS += $(LIBM_INC)
-
-
+CFLAGS += $(LIBM_INC)
+LIBS += $(LIBM)
