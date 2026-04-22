@@ -1,3 +1,7 @@
+### Errata
+
+Note: if you get link errors, do a pull to get libm. 
+
 ## Using an i2c mems-based IMU (accelerometer + gyroscope)
 
 <p align="center">
@@ -15,9 +19,9 @@ Why:
     lower level stuff.
  2. Doing different devices is a good good basis for final projects.  
  3. The exact lab today can be used as a cheat code in other classes
-    that have final projects --- e.g., just do what Tina did and 
-    add an accel to your ai project (about 10 minutes) and immediately
-    stand out from the other few hundred students.
+    that have final projects --- e.g., just do what our former TA Tina
+    Rogers did and add an accel to your ai project (about 10 minutes)
+    and immediately stand out from the other few hundred students.
  4. I2c is common, so it's good to get experience.  It's also 
     good to get practice with another device.
 
@@ -27,23 +31,12 @@ The plan is to:
   2. Write your own i2c driver from the Broadcom documents in a subsequent
      lab.
 
-There are a ton of extensions.   Literally tons.  Many I wish I had
-time to do, so with modest effort you can crank my boomer envy to 11.
-(In my ideal world people go off and figure out how to do different
-tricks and then do a show-and-tell next lab as a follow on.)
-  - If you're interested in this topic, we have several more advanced
-    MPU's --- the InvenSenses MPU9250 and Polou's MiniMPU v5 --- both of
-    which have a magnetometer.  Extension: If you're interested in this
-    type of device, we also have a more expensive 9-axis InvenSense's
-    MPU-9250 and Polou's MiniMPU v5 (both about $20-25) that you can
-    do for the lab or for an extension.  They include a magnetometer so
-    you can do correction.
+Note: we now have floating point!
+  1. We changed the repo to use floating-point by default. 
+  2. There is a janky lib math in `cs240lx-25spr/lib/libm`
+  3. There are examples in `examples-fp`.
+  4. Hopefully everything just works!
 
-    In technical slang, these are called 9-axis DoF (degree of freedom)
-    devices  --- 3-axis for the X, Y, Z accelerometer + 3-axis for the
-    gyro + 3-axis for the magnetometer.  Porting your code to these
-    is a good way to make it obvious what are the common things to do,
-    and whats device-specific.
 
 The `docs` directory has a bunch of documents.  The two main ones for
 the MPU-6050:
@@ -53,14 +46,19 @@ the MPU-6050:
     gives a more general device overview along with self-test and startup delays.
   - [Broadcom-i2c.pdf](./docs/broadcom-i2c.pdf): excerpted broadcom I2c.
 
-
 Some other documents in no particular order:
   - [A nice clear SPARKFUN tutorial on gyros](https://learn.sparkfun.com/tutorials/gyroscope/all).
   - [MPU6050 overview](https://mjwhite8119.github.io/Robots/mpu6050).
 
 #### Checkoff
 
-Four parts:
+Daniel mode:
+ - You can easily ignore our starter code and write everything from
+   scratch.  The needed interface is narrow (reset, configure, has-data,
+   read-data) without any fancy data structures.  It's an interesting
+   exercise.   Just build: accel, gyro, self test and some extension.
+
+The four part checkoff:
  1. Accel: You should implement the `todo` parts of `code/mpu-6050.c` and
     make sure that both `driver-accel.c` works.
  2. Gyro (`driver-gyro.c`) same: make sure the output gives 
@@ -93,12 +91,6 @@ Four parts:
       calculations (see the end of this README) and do something with
       them.   Ashwin'22 3-D printed a gimble and used these values to
       control where it pointed.
-
-Alternatively, you can just do hard (Daniel) mode:
- - You can easily ignore our starter code and write everything from
-   scratch.  The needed interface is narrow (reset, initialize, has-data,
-   read-data) without any fancy data structures.  It's an interesting
-   exercise.
 
 ---------------------------------------------------------------------------
 ### Incomplete cheat sheet of page numbers.
@@ -221,16 +213,14 @@ What to do now:
 Use the datasheet and application note from the docs directory.
 There are notes in the code.
 
-Note:
-  - We use the "data ready" interrupt to see when new data is available.
-
-    If you set the i2c speed low enough (by having a high i2c clock
-    divisor) then this check will *never* fail because the speed is
-    too slow.
-
-    Our initial i2c implementation ignored clock-div and had this
-    bug.  Interesting to track down since it's also consistent with
-    misconfiguration.
+Note on when data is ready:
+  1. We use the "data ready" interrupt to see when new data is available.
+  2. If you set the i2c speed low enough (by having a high i2c clock
+     divisor) then this check will *never* fail because the speed is
+     too slow.
+  3. Our initial i2c implementation ignored clock-div and had this
+     bug.  Interesting to track down since it's also consistent with
+     misconfiguration.
 
 ---------------------------------------------------------------------------
 ### Part 2: fill in the gyroscope code in the code directory.
@@ -243,7 +233,6 @@ Similar to accel:
 
 Use the datasheet and application note.  Start with the simple cookbook
 example they give and make sure your stuff looks reasonable!
-
 
 ---------------------------------------------------------------------------
 ### Part 3: self test
@@ -275,25 +264,22 @@ For the gyro (register map, p 10):
   2. Read the gyro values before-hand --- these are the measurements
      *without* self test.
   3. Turn self-test on in the `GYRO_CONFIG` register.   Wait til settles
-     (Javier did 250ms).  I also discarded the first 20 readings.
+     (Javier '25 did 250ms).  I also discarded the first 20 readings.
   4. Read the gyro values --- these are the measurements *with* self test.
      STR = these values subtracted from (2).
   5. Then read the factory trim settings using registers 13-15 (p6) and
      using the low five bits (bit 0 to bit 4 inclusive).   Compute
      the FT readings using the formula from the datasheet above:
-
-
+```
             float ft_z =  25. * 131. * powf(1.046, z - 1.);
             float ft_x =  25. * 131. * powf(1.046, x - 1.);
             float ft_y = -25. * 131. * powf(1.046, y - 1.);
-
-
+```
   6. You compute the percentage difference as: (STR - FT) / FT.  Where
      STR = (2) - (3).  FT = (5).  Acceptable is within +/- 14%.
      Anything more than that is a reject.
 
-
-#### accel
+#### Accel self-test
 
 <p align="center">
   <img src="images/accel-self-test.png" width="500" />
@@ -303,12 +289,13 @@ Note: the self test registers are different from gyro!
 
 The trim formula:
 
+```c
         float compute_ft(unsigned t) {
             if(t == 0)
                 return 0;
             return 4096. * .34 * powf(.92/.34, (t-1.)/(2*2*2*2*2-2.));
         }
-
+```
 
 Common mistake:
   1. Not combining the two different locations of the self-test readings. E.g.,
@@ -316,13 +303,6 @@ Common mistake:
   2. Not setting the initial accel configuration correctly (should be 8g).
   3. Using `GYRO_CONFIG` instead of `ACCEL_CONFIG`.
 
-
-#### fp
-
-We changed the repo to use floating-point by default.
-If you need the the floating point math library, look in:
-[../../guides/using-float](../../guides/using-float).  Hopefully "it
-just works" after you change the Makefile.
 
 ---------------------------------------------------------------------------
 ### Extension: display the readings using your light strip or LED
@@ -349,7 +329,6 @@ is available, control over speed, errata, etc).  The more devices you
 do the more you'll notice they share common patterns.  The nice thing:
 there exists an N s.t. after doing N devices, doing N+1 is pretty quick.
 
-
 ---------------------------------------------------------------------------
 ### Extension: multiple devices + i2c
 
@@ -362,12 +341,9 @@ This is a good step towards a sensor glove or a wearable harness.
 The directory `example-madgewick` has some examples of using madgewick
 calculations to determine position.
 
-
 The directory: `imu/src` has a madgwick implementation to fuse gyro, accel
 and mag.  The `madgwick-blake` directory has a version that fuses gyro
 and accel.  They give euler angles as well as other location indications.
-
-
 
 When you run it, you'll get something like:
 
@@ -402,3 +378,24 @@ Different writeups in `./docs` for different directions:
    2. [Calibrate](./docs/AN4246.pdf)
    3. [Even more compass + Calibrate](./docs/AN4248.pdf)
    4. [Location](./docs/madgewick-estimate.pdf)
+
+
+---------------------------------------------------------------------------
+### Even more extensions
+
+There are a ton of extensions.   Literally tons.  Many I wish I had
+time to do, so with modest effort you can crank my boomer envy to 11.
+(In my ideal world people go off and figure out how to do different
+tricks and then do a show-and-tell next lab as a follow on.)
+  - If you're interested in this topic, we have several more advanced
+    MPU's --- the InvenSenses MPU9250 and Polou's MiniMPU v5 --- both of
+    which have a magnetometer.  Extension: If you're interested in this
+    type of device, we also have a more expensive 9-axis InvenSense's
+    MPU-9250 and Polou's MiniMPU v5 (both about $20-25) that you can
+    do for the lab or for an extension.  They include a magnetometer so
+    you can do correction.
+  - In technical slang, these are called 9-axis DoF (degree of freedom)
+    devices  --- 3-axis for the X, Y, Z accelerometer + 3-axis for the
+    gyro + 3-axis for the magnetometer.  Porting your code to these
+    is a good way to make it obvious what are the common things to do,
+    and whats device-specific.

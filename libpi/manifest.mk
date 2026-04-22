@@ -39,7 +39,8 @@ DEPS += ./src
 
 # we need these first so that the catchall .o rule in Makefile.robust
 # doesn't claim them.
-all:: ./staff-start.o
+all:: ./staff-start.o  libm
+
 
 # copy staff-start.o to top level to make it easier to include.
 staff-start.o: $(BUILD_DIR)/staff-start.o
@@ -55,3 +56,6 @@ clean::
 	make -C  staff-src clean
 
 .PHONY : libm test
+
+libm:
+	make -C $(LIBM_DIR)
