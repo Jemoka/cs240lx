@@ -31,10 +31,10 @@ Labs:
      doing his widely-aclaimed pcb lab.  Very useful for final projects!
    - [7-imu-i2c](7-imu-i2c): another fun device lab. Write the driver
      for an MPU-6050 accelerometer and gyroscope from the data sheet.
-
-Possible labs, many more TBA (note: these aren't checked in yet):
    - [8-i2c](8-i2c): write an I2C driver.  Now all the code for the 
      for the previous MPU lab is yours!
+
+Possible labs, many more TBA (note: these aren't checked in yet):
    - [9-profiler](9-profiler): use single-step debug hardware to build
      an exact instruction profiler.  Extend it with sleazy tricks
      to do cycle counting.
