@@ -28,7 +28,7 @@ include $(CS240LX_2026_PATH)/libpi/defs.mk
 CFLAGS += -Iinclude
 
 # Rebuild objects when local headers, this Makefile, or libpi change.
-DEPS := $(wildcard ./*.h) ./Makefile $(LPI)
+DEPS := $(wildcard ./*.h) ./Makefile 
 
 .PHONY: all clean protos
 all: $(TARGET)
