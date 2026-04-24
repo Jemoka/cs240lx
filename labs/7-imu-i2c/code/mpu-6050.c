@@ -169,7 +169,7 @@ accel_t mpu6050_accel_init(uint8_t addr, unsigned accel_g) {
     test_mg(-350, 0xe9, 0x97, 2);
     test_mg(-1000, 0xbf, 0xf7, 2);
 
-    // initialized your accel to 2g (accel_confi_reg)
+    // initialized your accel to 2g (accel_config_reg)
     todo("setup accel with 2g");
 
     output("accel_config_reg=%b\n", imu_rd(addr, accel_config_reg));
