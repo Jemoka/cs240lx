@@ -1,53 +1,8 @@
 ## I2C
 
-### Errata
-
-Two big changes for software I2c.
-
-First,  delete the checking if the pin is input or output and always
-set it to the right thing.   Just delete:
-
-        unsigned SCL_is_input_p:1;
-        unsigned SDA_is_input_p:1;
-
-Second, My I2C looks slightly different from the wikipedia.  
-I send a 1 as the last bit on the last byte:
-
-```
-// Read a byte from I2C bus
-uint8_t i2c_read_byte(i2c_t *h, bool done_p) {
-    uint8_t byte = 0;
-
-    // msb reads
-    for (unsigned bit = 0; bit < 8; ++bit)
-        byte = (byte << 1) | i2c_read_bit(h);
-
-    // if it's the last byte, <done_p>=1
-    i2c_write_bit(h, done_p);
-    return byte;
-}
-
-
-int sw_i2c_read(i2c_t *h, uint8_t data[], unsigned nbytes) {
-    i2c_start_cond(h);  // xfer start
-
-    // send address for read: low bit is 1
-    if(!i2c_write_byte(h, h->addr<<1|1))
-        panic("nake: failed to write byte\n");
-
-    // write a bit after each bit: are we done?
-    for(unsigned i = 0; i < nbytes; i++)
-        data[i] = i2c_read_byte(h, i==(nbytes-1));
-
-    i2c_stop_cond(h);  // xfer end
-    return 1;
-}
-```
-
-### overview
-
-Since this is midterm week, we'll do a low-key device lab by building
-the main black box of the IMU lab: the i2c device driver.
+Before doing more advanced memory checking next week, we'll finish up
+our low-key device lab by building the main black box of the IMU lab:
+the i2c device driver.
 
 The i2c protocol.  You used our staff i2c code on Tuesday to
 communicate with your accel/gyro, so it makes sense to write
@@ -67,17 +22,37 @@ the hardware i2c in the bcm2835 and a bit-banged version.
   - software i2c: [The Wikipedia for the i2c protocol][bit-bang-i2c]
     gives a pretty easy pseudo-code you can use to do a bit-banged
     version.
- 
+  - There is a good 8-page i2c tutorial from TI in [docs/ti-i2c-tutorial.pdf](docs/ti-i2c-tutorial.pdf)
+
+  - A simple pullup-based loopback test that will make how I2C
+    uses pullups to send 1 much clearer.
+
+### Common mistakes.
+
+ 1. Do not use raw dereferences. Only use `put32` and `get32` to read
+    and write memory.  There were a lot of bugs last year because people
+    YOLO'd this part and had subtle problems (which hit later in the
+    quarter).
+ 2. Make sure you use device barriers when using different devices.
+
+
+### Checkoff
 
 Checkoff:
   1. i2c hardware driver.  Should drop into last lab and give sensible
      values.  
-  2. ***this is now an extension***: i2c software driver.  Should drop
-     into last lab and give sensible values.
-
+  2. i2c software driver.  Should drop into last lab and give sensible values.
   3. Both of these should pass the gyro and accel self-test.  Self-
      test was optional from last lab but it found so many issues
      in code that we're adding it as a requirement for today's lab.
+
+Lots of good extensions at the end of the README.  A couple of new
+ones:
+  1. Use I2C interrupts!
+  2. Configure the i2c slave device and see that you can do a loopback.
+  3. As an advanced step: if you get (2) done, then forward the i2c commands
+     to the slave, read them, and then bit bang them to the IMU :)  Should
+     get sensible readings.
 
 ------------------------------------------------------------------------------
 ### 1. hardware I2C driver: `code-i2c/i2c.c`
@@ -162,17 +137,9 @@ using a `PUT32` (not `PUT8`).
   1. The Makefile links in the accel driver and the staff code from
      last lab.
   2. If you do `make` everything should run and produce readings.
-  3. Now change:
-
-            # code-i2c/Makefile
-            # COMMON_SRC = i2c.c
-
-     To:
-
-            COMMON_SRC = i2c.c
-
-     And the makefile will compile in the `i2c.c` and start using that.
-
+  3. Then just do the usual flip of staff for your code in 
+     `code-i2c/Makefile`.
+     And the makefile will compile in `i2c.c` and start using that.
   4. If you get stuck you can always comment this out back out and
      it will use the staff i2c.  If the code still seems broken,
      power-cycle your pi by unplugging the usb cord and plug it back in.
@@ -181,6 +148,8 @@ using a `PUT32` (not `PUT8`).
 
 ------------------------------------------------------------------------------
 ### 2. software I2C driver: `code-sw-i2c/i2c.c`
+
+***NOTE IF YOU SEE THIS DO A PULL: I"M CHANGING THE BIT BANG***
 
 Like many digital protocols, building a bit-banged version of the 
 hardware protocol (1) can be easier than writing the hardware version
