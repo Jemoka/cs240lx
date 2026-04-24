@@ -1,5 +1,4 @@
-# Makefile to build or clean all labs.
-SUBDIRS= libpi labs lib/libm #  libunix
+SUBDIRS= code-i2c code-sw-i2c
 
 .PHONY: all check clean
 all check clean: $(SUBDIRS)
@@ -12,7 +11,7 @@ clean: TARGET=clean
 
 # recursive call to make
 $(SUBDIRS): force
-	$(MAKE) -s -C $@ $(TARGET)
+	$(MAKE) -s -C $@ $(TARGET) RUN=0
 
 clean:
 	rm -f *~ *.bak
