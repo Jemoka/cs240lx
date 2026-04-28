@@ -1,4 +1,4 @@
-SUBDIRS= code
+SUBDIRS= code code-pmu
 
 .PHONY: all check clean
 all check clean: $(SUBDIRS)
