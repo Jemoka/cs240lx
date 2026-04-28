@@ -15,11 +15,13 @@ COMMON_SRC += ss-pixie-asm.S
 OUR_START = staff-start.S
 
 # you can swap in your 140e
-STAFF_OBJS += staff-breakpoint.o
+O := $(CS240LX_2026_PATH)/libpi/staff-objs/
+STAFF_OBJS += $(O)/staff-breakpoint.o
 
 BOOTLOADER=my-install
 RUN = 1
 # CAN_EMIT=1
 
+
 EXCLUDE ?= grep -v simple_boot
-include $(CS240LX_2025_PATH)/libpi/mk/Makefile.robust-v2
+include $(CS240LX_2026_PATH)/libpi/mk/Makefile.robust-v3

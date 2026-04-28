@@ -18,11 +18,11 @@ on kernel code.
 
 So today we'll build a simple version.  Using the ARM single-stepping
 hardware makes it pretty easy.  If you add the counters from the ARM
-performance monitor, things get interesting in that its easy to see why
-different parts of the code are taking longer than others.  And it's
-not to hard to make it run on kernel code --- in fact, unusually,
-it's in some ways easier to trace kernel code user-code since there
-are fewer moving parts and we have complete control.
+performance monitor, things get interesting in that it's easy to see why
+different parts of the code are taking longer than others.  And it's not
+too hard to make it run on kernel code --- in fact, unusually, it's in
+some ways easier to trace kernel code versus user-level code since there are
+fewer moving parts and we have complete control.
 
 Various external motivations:
   - You'll need to understand exception handling when we build 
@@ -35,8 +35,18 @@ Various external motivations:
 
 #### Background
 
+Code:
+  - `code`: The initial code in `code/` gives a working single step
+    example for today's lab.  You'll be extending it.
+  - `0-crash-course`: a complete working example for how to use single
+    stepping from 140E 2026.  Good to refresh, or to kick the tires more.
+  - For both: you're encouraged to change them, add prints, remove them,
+    trace the execution.
+
 Docs:
-  - The arm1176 performance monitor unit: [pmu][pmu].
+  - The arm1176 performance monitor unit: [pmu][pmu].  This gives
+    many different counters --- data cache misses, branch mispredictions,
+    etc.  Useful for extending the profiler.
 
 Useful 140e labs --- worth reading after the lab for next time,
 even if you don't need them this time:
@@ -51,12 +61,16 @@ even if you don't need them this time:
   1. Write a simple instruction profiler similar to the `gprof` in 140e
   2. Add the cycle counter and display both the number of times 
      each instruction runs and the cycle counts.
-  3. Add another interesting hardware counters to (2).
+  3. Add another interesting hardware counter to (2).
+  4. Correct both (2) and (3) as much as you can so the numbers get
+     close to the true values.  If you push this correction far
+     that counts as the extension below:
+  5. Do some extension.  
 
 There are tons of extensions.  Will add!  Or ask.
 
 ------------------------------------------------------------------
-### Background: Single step example: `code/`
+### Background 1: Single step example: `code/`
 
 We give a complete working single-step example in the `code/`
 directory. It's called "ss-pixie" (single-step pixie) in honor of its
@@ -71,7 +85,7 @@ At a high level it works by using "mismatch faults" to single-step
 through code between these two calls.
 
 As you might recall from 140e (labs 9, 10, 11), mismatch faults only
-happen when for code running at user level, so at a high level the code
+trigger for code running at user level, so at a high level the code
 works as follows:
   1. `pixie_start`: initialization:
        1. Sets up the exception vectors to catch both mismatch
@@ -87,7 +101,7 @@ works as follows:
        2. Sets a mismatch on the faulting instruction (so that the 
           faulting instruction will execute normally, but any other 
           instruction will fault).
-  3. When the code being profiled wants to turn off profiling it:
+  4. When the code being profiled wants to turn off profiling it:
        1. Calls `pixie_stop` to turn off mismatching and switch back to
           privileged mode;
        2. Since neither change can be done directly by unprivileged
@@ -101,6 +115,32 @@ works as follows:
           known `pixie_stop` address.)
 
 You should poke around the example.  It's heavily commented.
+
+------------------------------------------------------------------
+### Background 2: 140e Single-step example: `0-crash-course/`
+
+Seeing the same thing in two slightly different ways can help depth
+perception.  In that spirit, we include a second single-step example
+used as a crash-course for 140E 2026 lab 10.
+
+You can view the code as an interactive textbook that shows how to
+use single stepping. 
+
+Go through the two programs in `0-crash-course`:
+  - Start with `0-nop1-example.c` and see how it works,
+    then `1-many-fn-example.c`
+  - They are a couple hundred lines of code, but it's mostly
+    comments.  You should add prints, change things, corrupt
+    registers to see that the code actually uses them --- anything
+    that makes it less passive.
+  - In order to make your results easily comparable to other
+    people the initial routines are written in assembly (so the compiler
+    won't mess with them), and put in `single-step-start.S` so they will
+    be at the same address for everyone (`single-step-start.o` is linked
+    at the start of the program at the same address for everyone).
+  - With that said: there is no limitation in the code --- you can
+    single-step any code you can run at user level, whether it was written
+    in C, rust, zig, or JIT'ed at runtime.
 
 ------------------------------------------------------------------
 ### Part 1: turn `ss-pixie` into an instruction profiler
@@ -121,7 +161,7 @@ The basic algorithm:
  2. In the fault handler, use the program counter value (register 15)
     to index into this array and increment the associated count.  
 
-    NOTE: its very easy to mess up sizes.  Each instruction is 4 bytes, so
+    NOTE: it's very easy to mess up sizes.  Each instruction is 4 bytes, so
     you'll divide the `pc` by 4.  You'll want to subtract where the code
     starts (from our `memmap` we expect `__code_start__` to be `0x8000`).
 
@@ -138,7 +178,7 @@ The basic algorithm:
     correspond to.
 
  4. For the simple test `tests/1-prof-test.c` that just repeatedly prints,
-    the expected results are most counts should be in `PUT32`, `GET32`,
+    the expected result is that most counts should be in `PUT32`, `GET32`,
     and various `uart` routines.  Note: you will get different 
     results when you have caching enabled or not (why?).
 
@@ -146,31 +186,13 @@ Write a couple tests and validate that your profiler eats them and spits
 out interesting values.  For interesting tests, please post to Ed so we
 can steal them (add your name / year).
 
-#### To add your ckalloc
+--------------------------------------------------------------------
+### A great extension: Make your profiler legible.
 
-If you want to use your ckalloc, and you finished lab 6 (as in: you
-use your code in the makefile rather than staff binaries), you can just
-change the Makefile in `9-profiler/code/Makefile` to pull it in:
-
-        CFLAGS += -I../../6-debug-alloc/code/
-        COMMON_SRC += ../../6-debug-alloc/code/ckalloc.c
-        COMMON_SRC += ../../6-debug-alloc/code/kr-malloc.c
-        COMMON_SRC += ../../6-debug-alloc/code/ck-gc.c
-        COMMON_SRC += ../../6-debug-alloc/code/gc-asm.S
-
-Note: you really shouldn't need the gc stuff.  Unfortunately `kr-malloc`
-needs `sbrk` which we foolishly put in `ck-gc.c`.  A good approach is to 
-pull it apart so it's seperate.
-
-Otherwise you have to copy it into a subdirectory and use it.
-
-#### A great extension!   
-
-Have a wrapper around `my-install` that uses passes each PC address to
-the GNU utility `arm-none-eabi-addr2line` to convert the addresses to
-file and line number information.  You can even open the given files
-and display the code on one side, and the counts on the other side.
-(Super useful!)
+Have a wrapper around `my-install` that passes each PC address to the GNU
+utility `arm-none-eabi-addr2line` to convert the addresses to file and
+line number information.  You can even open the given files and display
+the code on one side, and the counts on the other side.  (Super useful!)
 
 For example, when I run `1-prof-test.c` with caching enabled I get:
 
@@ -194,12 +216,23 @@ When I use "addr2line" to get the file and function of the first address
                   -e objs/l1/l2/l3/tests/1-prof-test.elf
 
 I get:
-
+```
         uart_can_putc
         uart.c:159
+```
 
 Which makes sense --- mostly the code is waiting to be able to emit 
 output.
+
+If you want very useful --- you can precompute this information, concatenate
+it to the end of the binary, and pull it into the code so it can self
+report.  
+
+Major extension:
+  - Even more useful, but more challenging: use the debug info in
+    the ELF binary.  (You'll have to change your bootloader to handle ELF
+    files).
+
 
 ------------------------------------------------------------------
 ### Part 2: add support for cycle counters
@@ -216,18 +249,24 @@ the handler would be useless.
 Ideally, what we would want to do instead is:
   1. At the first line of the fault handler, record the cycle count.
   2. At the last line of the fault handler, record the cycle count.
-  3. Subtracting (1) from (2) gives the cycles it cost to return
+  3. Subtracting (1) from (2) gives the cycles it costs to return
      from the exception, run the next instruction, and then get
-     another fault.     Now, while it still includes the overhead
+     another fault.  Now, while it still includes the overhead
      of taking and returning from an exception, these costs are large
      but low variance (more below).
+  4. Fun challenge: try to correct (3) so that it gives you close
+     to the true cycle count values.  You will have to write some
+     known code (e.g., with just nops) and measure it with cycle
+     counters and work out the rough constant correction.  Note:
+     since our monitor code is fairly heavy-weight (e.g., we take
+     an exception for each instruction) this won't be exact.
+     (NB: Unless you are exceptionally clever.)
 
 How can we do this?  Various problems:
   1. How can we read the cycle counter when we get an exception?
      All the registers are live!  Fortunately, while we can't use `lr`,
      we have a private `sp` and since the ARM registers are untyped we
      can read into it.  (Weird, but legal.)  
-
   2. Ok, we have the cycle counter in `sp`: how do we store it?  We
      need a stack to push it onto, but the stack needs `sp`.
 
@@ -237,7 +276,7 @@ How can we do this?  Various problems:
      to store arbitrary values.  The screenshot of page 3-129 (chapter
      3 of the arm 1176.pdf manual) below gives the instructions.
 
-     (Note: this kind of arm lore is a good reason to reach chapter 3 of
+     (Note: this kind of ARM lore is a good reason to read chapter 3 of
      the arm1176: there are all sorts of weirdo little operations that
      when you add cleverness can let you do neat stuff not possible on
      a general purpose OS.)
@@ -253,16 +292,16 @@ How can we do this?  Various problems:
      probably guessed we can put it in one of the other scratch registers.
      (Or maybe do something more clever?)
 
-     Thus, the difference betwen (2) and (3) gives the number of cycles 
+     Thus, the difference between (2) and (3) gives the number of cycles 
      from
        - A: when we return from a mismatch exception;
-       - B: ran the next instruction;
-       - C: and then took another mismatch exception and got back to 
+       - B: running the next instruction;
+       - C: taking another mismatch exception and got back to 
          the handler.
 
      As mentioned above, while A and C are large compared to B, they are
      performed internally within the hardware itself and (appear to!) have
-     low variance --- and low variance means they  just add (roughly)
+     low variance --- and low variance means they just add (roughly)
      a constant overhead, easily removed or ignored.  B on the other
      hand can vary significantly, which is what we are interested in.
 
@@ -277,16 +316,14 @@ What to do:
      the reads are as close to the start and end as possible. 
      The cleaner you can do this, the more stable the measurements
      will be.
-
   2. Write some simple code that you know the answer to and validate
      that you get useful answers.
-
   3. After you're happy with (2), you can subtract off a correction
      factor.  Or, alternatively, just keep things as is and use the
      relative differences.
 
 Some common bugs:
-  1. If you notice a unusually large cycle value at a PC soon after
+  1. If you notice an unusually large cycle value at a PC soon after
      the user switch: this is because the scratch register used to
      record the "last" cycle read has not been initialized.  Easy fix:
      before the `cps` instruction in `pixie_switchto_user_asm` read the
@@ -305,7 +342,30 @@ Some common bugs:
      what you get.  For example, `4-nop-test.c` profiles a routine that
      does 10 nops, no loads or stores with caching enabled.  We expect
      each `nop` instruction to take about the same (for me 36 cycles).
-     Any big spike is a sign that somethig is off.
+     Any big spike is a sign that something is off.
+
+------------------------------------------------------------------
+## Part 3: use your profiler to speed up some code.
+
+Required:
+  1. Make custom versions of the GPIO set and clear routines as
+     inline routines in a `gpio-raw.h`.    They should do no 
+     error checking and just do raw volatile reads and writes of
+     the needed addresses.  Use your profiler to measure their cost.
+     We will need these in the next lab.  Keep an eye out for loads of
+     large GPIO address constants --- a common ARM way to slow things
+     down.
+  2. NOTE: these are simple enough the profiler isn't a huge win here
+     so maybe not the best example :) --- feel free to do one of the
+     ones below.
+
+Suggestions:
+  1. Make a very fast memcpy, possibly tuned to 8 byte copies.
+  2. Make a faster malloc that wraps up `kr-malloc` and uses an
+     array indexed by different sizes (e.g., 8, 16, 24, 32, ... 512?)
+     with a fast linked list for each bucket.  This is a common
+     optimization. Useful for this class!
+  3. Something else interesting!
 
 ------------------------------------------------------------------
 ### Extension: Implement PMU counters `code-pmu`
@@ -315,10 +375,12 @@ we can use to see what is going on, such as cache misses, TLB misses,
 prediction misses, procedure calls.  You'll write a simple library that
 exposes these, which will make it much easier to optimize code.
 
-The arm1176 document describes the performance monitor unit (PMU) on pages
-3-133 --- 3-140.  It has many useful performance counters, though with the
-limit that only two can be enabled at any time in addition to the "always
-on" cycle counter.  We'll write a simple interface to expose these.
+The arm1176 document describes the performance monitor unit (PMU) on
+pages 3-133 --- 3-140 (see `./docs` in this lab or the `arm1176.pdf`
+manual in the class `./docs`).  It has many useful performance counters,
+though with the limit that only two can be enabled at any time in addition
+to the "always on" cycle counter.  We'll write a simple interface to
+expose these.
 
 These counters make it much easier to speed up your code --- it's hard to
 know the right optimization when you don't know what the bottleneck is.
@@ -327,24 +389,20 @@ In addition, they can be used to test your understanding of the hardware
 code based on this understanding and measure if the expected result is
 the actual.
 
-#### Implement `code-pmu/armv6-pmu.h`
+Use them to track some interesting counter (e.g., cache miss, branch
+misprediction) and use that to trace where your code does bad stuff.
+It's best to also use the cycle counter so you can get a detailed view.
 
-Fill in the `unimplemented` routines in `code-pmu/armv6-pmu.h`.  I'd suggest
-using the `cp_asm` macros in
-
-        #include "asm-helpers.h"
-
-You probably should have an enum for all the different types in
-the header too.  E.g.,
-
-        enum {
-            PMU_INST_CNT = 0x7,
-            ...
-        };
+To debug:
+  1. First write some simple code and measure it without the
+     profiler to make sure you have code that triggers the counter.
+  2. Then rerun with the profiler and check it shows what you are
+     measuring.
+  3. Then do some other interesting code.
 
 What you need:
    1. Performance monitor control register (3-133): write this to
-      select which performance counters to use (the values are in tabel
+      select which performance counters to use (the values are in table
       3-137) and to enable the PMU at all.
    2. Cycle counter register (3-137): read this to get the current
       cycle count.
@@ -353,24 +411,15 @@ What you need:
    4. Count register 1 (3-139): read this to get the 32-bit 1-event
       counter (set in step 1).
 
-
-### Write some code that shows off some of the other performance counters.
-
 This is a choose-your-own adventure:  look through the counters and
 write some code that shows off something they can measure (or run on your
 140e or 240lx code!).  The easiest way is to copy the header files into
 `libpi/include` directory and they should just work.
 
 ------------------------------------------------------------------
-### Extension: Use PMU counters in your profiler
-
-For this, you'll take the assembly from part 3 and add the counters
-to the prefetch abort fault handler trampoline.  
-
-------------------------------------------------------------------
 ### Extension: Do a hierarchical profiler
 
-Seeing that a given instruction is run alot, is great, but if it's in
+Seeing that a given instruction is run a lot is great, but if it's in
 a routine called by many other routines you can't easily figure out how
 to optimize.   A very useful tool is a hierarchical profiler that tracks
 who called what, and when they did, how much it cost.  You can do a full
@@ -382,8 +431,9 @@ to speed it up.  Massive improvements are possible!
 ------------------------------------------------------------------
 ### Hard Extension: make the profiler able to profile itself
 
-This is an interesting challenge.  I believe its possible,
-but you need some clever recursive thinking. 
+This is an interesting challenge.  It's possible, but you need some
+clever recursive thinking.  Sai (one of our God-level TAs) did this for
+an LX side-quest.
 
 Assume profiler-A is profiling profiler-B.  You'll have to do some
 virtualization tricks (similar to a full VMM) so that profiler-A can
