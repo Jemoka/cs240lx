@@ -417,6 +417,18 @@ write some code that shows off something they can measure (or run on your
 `libpi/include` directory and they should just work.
 
 ------------------------------------------------------------------
+### Simple extension: Replace our code!
+
+We use the same interfaces that we used in 140e, so you should be
+able to drop in your old code and have it work.  Valuable so you
+see the whole picture.
+
+If you took 140e this is probably relatively straight-forward.  But some
+of the most rewarding things in life are easy, so fair enough.  If you
+didn't take 140e, this is a great extension so you really understand
+what is going on.
+
+------------------------------------------------------------------
 ### Extension: Do a hierarchical profiler
 
 Seeing that a given instruction is run a lot is great, but if it's in
