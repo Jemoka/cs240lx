@@ -1,0 +1,56 @@
+#include "rpi.h"
+#include "i2c.h"
+#include "gpio.h"
+#include "mpu-6050.h"
+#include "bit-support.h"
+
+uint8_t ADDR = 0b1101000;
+static i2c_t I2C = {.scl = 3, .sda = 2};
+
+void notmain(void) {
+    /* dev_barrier(); */
+
+    // set pins to alt function 0
+    gpio_set_function(I2C.scl, GPIO_FUNC_ALT0);
+    gpio_set_function(I2C.sda, GPIO_FUNC_ALT0);
+    dev_barrier();
+
+    /* // clear errors (1 on bit 8) and clear done (1 on bit 1) */
+    /* uint32_t s1 = bit_set(0, 9) | bit_set(0, 8) | bit_set(0, 1); */
+    /* PUT32(BSC_S, s1); */
+
+    /* // clear fifo (1 on bit 5) and start (1 on bit 15) */
+    /* uint32_t c = bit_set(0, 15); */
+    /* PUT32(BSC_C, c); */
+    
+    /* dev_barrier(); */
+
+    // get the status and check for errors, if so return -1 and bail
+    uint32_t s = GET32(BSC_S);
+    /* if (bit_is_on(s, 8)) { */
+    /*     printk("i2c: error detected before read: status = %x\n", s); */
+    /*     /\* return -1; *\/ */
+    /* } */
+    /* if (bit_is_on(s, 9)) { */
+    /*     printk("i2c: clock stretch timeout detected before read: status = %x\n", s); */
+    /*     /\* return -1; *\/ */
+    /* } */
+    /* if (bit_is_on(s, 5)) { */
+    /*     printk("i2c: fifo not empty detected before read: status = %x\n", s); */
+    /*     /\* return -1; *\/ */
+    /* } */
+
+
+    /* delay_ms(100); */
+    /* i2c_init(&I2C); */
+    /* delay_ms(100); */
+
+    /* mpu_init(ADDR); */
+    /* mpu_reset(ADDR); */
+    /* accel_t cfg = mpu_accel_config(ADDR, 8); */
+    /* mpu_self_test_accel(&cfg); */
+    /* gyro_t gyro_cfg = mpu_gyro_config(ADDR, 500); */
+    /* mpu_self_test_gyro(&gyro_cfg); */
+
+    /* return; */
+}
