@@ -1,4 +1,10 @@
-## I2C
+## Errata
+
+For I2C read:
+ - the old prose said: make sure you "clear the read bit" it should
+   say "clear the RX FIFO".
+
+## I2C Overview
 
 Before doing more advanced memory checking next week, we'll finish up
 our low-key device lab by building the main black box of the IMU lab:
@@ -41,10 +47,11 @@ the hardware i2c in the bcm2835 and a bit-banged version.
 Checkoff:
   1. i2c hardware driver.  Should drop into last lab and give sensible
      values.  
-  2. i2c software driver.  Should drop into last lab and give sensible values.
-  3. Both of these should pass the gyro and accel self-test.  Self-
-     test was optional from last lab but it found so many issues
-     in code that we're adding it as a requirement for today's lab.
+  2. Your IMU should work with your I2C driver and pass 
+     gyro and accel self-test.
+
+We made the bit-banged i2c driver an extension:
+  - Should drop into last lab and give sensible values.
 
 Lots of good extensions at the end of the README.  A couple of new
 ones:
@@ -118,7 +125,7 @@ Reading data: `i2c_read`:
 
      Set the control reg to read and start transfer.  Common mistake:
      don't disable the i2c hardware device, and make sure you clear
-     the read bit so it doesn't preserve the old value.  
+     the read FIFO so it doesn't preserve the old value.  
 
      Wait until the transfer has started.
 
@@ -181,7 +188,7 @@ implementation][bit-bang-i2c].  If you define the different helper
 routines it should just work --- we'll discuss these helpers
 after the code.
 
-```
+```c
 // Hardware-specific support functions that MUST be customized:
 #define I2CSPEED 100
 void I2C_delay(void);
@@ -365,7 +372,49 @@ void I2C_delay(void)
   }
 }
 ```
+#### I made two changes
 
+Two big changes for software I2c.
+
+First,  delete the checking if the pin is input or output and always
+set it to the right thing.   Just delete:
+
+        unsigned SCL_is_input_p:1;
+        unsigned SDA_is_input_p:1;
+
+Second, My I2C looks slightly different from the wikipedia.
+I send a 1 as the last bit on the last byte:
+
+```c
+// Read a byte from I2C bus
+uint8_t i2c_read_byte(i2c_t *h, bool done_p) {
+    uint8_t byte = 0;
+
+    // msb reads
+    for (unsigned bit = 0; bit < 8; ++bit)
+        byte = (byte << 1) | i2c_read_bit(h);
+
+    // if it's the last byte, <done_p>=1
+    i2c_write_bit(h, done_p);
+    return byte;
+}
+
+
+int sw_i2c_read(i2c_t *h, uint8_t data[], unsigned nbytes) {
+    i2c_start_cond(h);  // xfer start
+
+    // send address for read: low bit is 1
+    if(!i2c_write_byte(h, h->addr<<1|1))
+        panic("nake: failed to write byte\n");
+
+    // write a bit after each bit: are we done?
+    for(unsigned i = 0; i < nbytes; i++)
+        data[i] = i2c_read_byte(h, i==(nbytes-1));
+
+    i2c_stop_cond(h);  // xfer end
+    return 1;
+}
+```
 
 #### Implementing helpers.
 
@@ -424,7 +473,7 @@ and do the needful.
 To make things a bit easier, we defined the following structure
 in `sw-i2c.h`:
 
-```
+```c
 typedef struct i2c {
     // is this a transmitter or receiver?
     unsigned is_transmit_p;
