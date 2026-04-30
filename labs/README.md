@@ -36,10 +36,10 @@ Labs:
    - [9-profiler](9-profiler): use single-step debug hardware to build
      an exact instruction profiler.  Extend it with sleazy tricks
      to do cycle counting.
-
-Possible labs, many more TBA (note: these aren't checked in yet):
    - [10-pmu](10-pmu): use the arm performance counters to figure
      out interesting things.
+
+Possible labs, many more TBA (note: these aren't checked in yet):
    - [11-memcheck-trap](11-memcheck-trap): use domain protection and 
      debugging hardware to automatically trap every memory access.
    - [12-memcheck-trap-II](12-memcheck-trap-II): use the memory tracer
