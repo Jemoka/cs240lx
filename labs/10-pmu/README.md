@@ -70,9 +70,14 @@ Base checkoff:
    2. Write the smallest program to show the effect of alignment on the 
       prefetch buffer.
    3. Write 4-5 different performance counters and write tiny programs 
-      that cause the counters to do what you intend.  Pick whatever you want,
-      but one example should be showing what exactly effect a compiler 
-      optimization does using the counters.
+      that cause the counters to do what you intend.  Pick whatever you 
+      want, but:
+       - One example should use them to measure what exactly a compiler 
+         optimization does.
+       - One example should be done in the provided assembly file ---
+         thie prevents the compiler from doing any nonsense to your
+         measurements.  This will require you write assembly macros to
+         read the counters.
 
 Extensions:
    1. Find interesting weird effects.  (This should be easy.)  Isolate
@@ -86,6 +91,9 @@ Extensions:
       differently when aligned to 128 bytes vs 64 bytes.  (I will
       check in this code --- curious if you can do better.)
    3. Pull these into your profiler and make it more interesting.
+   4. There is an `mcrr` instruction you might be able to use to
+      read two counters at once (I remembered this right before class   
+      so don't have time to check --- my loss is your gain!)
 
 Note: if your result is surprising or cute enough, we'll take it for
 next year!
