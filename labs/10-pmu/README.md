@@ -147,7 +147,7 @@ One of the weird ones is:
     XX(ret_miss,        0x26, "return mispredicted")                    \
     XX(ret_hit,         0x25, "return predicted")                       \
     XX(ret_cnt,         0x24, "return count")                           \
-    /* the addresss was pushed on the return stack.  */                 \
+    ...
 ```
 
 This is a old C hack used when you have a set of related values (in our
@@ -166,10 +166,9 @@ enum {
 ```
 
 Defines a macro `PMU_ENUMS` (name doesn't matter) that when passed to
-`PMU_DEFS` will select the first argument, make a name by concatenating
-`name` with a `PMU_` prefix and assign it the second argument.
-
-After exansion we get:
+`PMU_DEFS` will select the first argument `name`, make a enumeration
+identifier by concatenating `name` with a `PMU_` prefix and assign it 
+the second argument `val`.  So, after macro expansion we get:
 ```c
 enum {
     PMU_ret_miss = 0x26,
@@ -178,9 +177,10 @@ enum {
     ...
 ```
 
-We can then later auto-generate helper routines for each of these as
-well:
-
+It's not pretty.  And maybe we should use a better language.  But it does
+let us pretty easily *generate* code at macro-expansion time in useful ways.
+For example, later in `rpi-pmu.h` we auto-generate helper routines for 
+each of these counters as follows:
 ```c
 #define PMU_FNS(fn_name,val,string)                         \
     /* enable event <type> */                               \
@@ -194,8 +194,7 @@ well:
 PMU_DEFS(PMU_FNS)
 ```
 
-Produces:
-
+Which after expansion produces:
 ```c
     static inline void pmu_ret_miss_on(unsigned n)
         { pmu_enable(n, val); }
@@ -204,9 +203,7 @@ Produces:
     ...
 ```
 
-It's not pretty.  And maybe we should use a better language.  But it does
-let us pretty easily generate code at macro-expansion time in useful ways.
-(We use this heavily in 140e to generate inline assembly helpers.)
+(We use this hack heavily in 140e to generate inline assembly helpers.)
 
 ------------------------------------------------------------------
 #### Part 1: Implement `code/rpi-pmu.h`
