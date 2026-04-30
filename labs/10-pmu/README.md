@@ -1,7 +1,8 @@
 ## Performance counters
 
-Today is a very unstructured, chose your own adventure lab that gets
-you into how the arm1176 + bcm2835 works.
+Today is a unstructured, chose your-own-adventure lab that gets
+you into the details of how real hardware (the arm1176 + bcm2835) 
+works without needing a lot of infrastructure.
 
 Since multiple people remarked that the profiler lab was fun, we'll
 double-down and do some performance counter puzzles.  It will have a
@@ -75,7 +76,7 @@ Base checkoff:
        - One example should use them to measure what exactly a compiler 
          optimization does.
        - One example should be done in the provided assembly file ---
-         thie prevents the compiler from doing any nonsense to your
+         this prevents the compiler from doing any nonsense to your
          measurements.  This will require you write assembly macros to
          read the counters.
 
