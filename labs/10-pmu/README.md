@@ -557,7 +557,7 @@ And measured it using the macro:
     pmu_stmt_measure(msg,
         ret_cnt, ret_hit,
     {
-        fact(4);
+        fact(5);
     });
 ```
 
