@@ -145,6 +145,8 @@ Go through the two programs in `0-crash-course`:
 ------------------------------------------------------------------
 ### Part 1: turn `ss-pixie` into an instruction profiler
 
+    
+
 Modify the `ss-pixie` code to count how many times each instruction
 gets run.
   1. You can get the faulting PC address from the 15th register.
@@ -236,6 +238,13 @@ Major extension:
 
 ------------------------------------------------------------------
 ### Part 2: add support for cycle counters
+
+NOTE: 
+  - A simplification from Tienle: set the cycle counter to 0 at the end
+    of the handler so you don't have to do any subtraction.  (I'm annoyed
+    I forgot about this hack since I spent 2 days debugging some weirdness
+    using it in 340lx just 6 months ago...)
+
 
 Counting instructions is good, but we would also like to count the number
 of cycles each instruction costs.  When there is a big difference between 
