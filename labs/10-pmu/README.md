@@ -462,7 +462,8 @@ some additional counters to measure:
   1. We enable instruction counting on event 0.
   2. We enable instruction stall counting on event 1.
   3. Measure before and after.
-  4. Print.
+  4. Print!
+
 
 ```c
 __attribute__((noinline))
@@ -526,3 +527,10 @@ The result:
 4:cache: total cyc=31, tot inst=8, tot stalls=0
 ```
 
+Couple notes:
+ 1. We use the `noinline` attribute to keep the routine
+    isolated --- in this case not so much to defeat
+    optimization but to make it easy to decipher the
+    disassembled code.
+ 2. We use `volatile` with the assembly so it doesn't get reordered with
+    respect to the PMU reads (also `volatile` inline assembly).
