@@ -391,6 +391,70 @@ Use the counters to figure out:
      You can easily mess with the test to measure other things.
 
 ------------------------------------------------------------------
+#### Part 3: write tiny programs to show other counters.
+
+This is a choose-your-own adventure:  look through the counters and write
+the smallest programs you can to show off something they can measure.
+You'll notice that some of them don't do exactly what they claim.
+
+Some easy ones:
+  1. Count the write back drained.  AFAIK, both the "dsb" and "dmb"
+     barriers increment.  We have function calls for these in libpi.
+     You can also inline them:
+
+        cp_asm_set_raw(cp15_dmb, p15, 0, c7, c10, 5)
+        cp_asm_set_raw(cp15_dsb, p15, 0, c7, c10, 4)
+        #define cp15_dmb cp15_dmb_set_raw
+        #define cp15_dsb cp15_dsb_set_raw
+
+  2. Data accesses (`data_access`): seems to work as expected.  I
+     used `volatile` accesses to defeat the compiler.  
+
+     Puzzle (that I don't know): why does the `wb_drain` (0x12) also
+     increase?  This doesn't make sense to me.
+
+  3. call-ret: the call (`call_cnt`) and return (`ret_hit`) counters
+     for me only seem to work with the branch prediction turned on.
+     And the return hits seem to max out at 3.  Let me know if you figure
+     out anything more than this!
+
+  4. Branch: branches include at least "branch and link" (function calls).
+     The branch counters are unclear to me, tbh.
+
+I'll add some suggestions (which you can ignore) as the lab goes.
+If you see this sentence do a pull!
+
+Ideally, you can use the counters to infer and validate things about the
+arm1176 chip --- cache size, associativity, prefetching instructions,
+etc.
+
+For cases where the code behaves weirdly, figure out what is going on,
+ideally using some of the other counters.
+
+------------------------------------------------------------------
+### Extension: Use PMU counters in your profiler
+
+For this, add some PMU counters to your profiler and show that 
+they actually give sensible results.
+
+------------------------------------------------------------------
+### Extension: Do a hierarchical profiler
+
+Seeing that a given instruction is run a lot, is great, but if it's in
+a routine called by many other routines you can't easily figure out how
+to optimize.  A very useful tool is a hierarchical profiler that tracks
+who called what, and when they did, how much it cost.  You can do a full
+graph, or do 2 deep, 3 deep, etc.  Any of them will be extremely useful.
+
+A great use of this is to apply it to your fat32 file system and use it
+to speed it up.  Massive improvements are possible!
+
+[single-step]: https://github.com/dddrrreee/cs140e-25win/tree/main/labs/9-debug-hw
+[interrupts]: https://github.com/dddrrreee/cs140e-25win/tree/main/labs/4-interrupts
+
+
+
+------------------------------------------------------------------
 #### Trivial counter example
 
 This overlaps with the previous, but here's a simple example of using
@@ -461,68 +525,4 @@ The result:
 3:cache: total cyc=31, tot inst=8, tot stalls=0
 4:cache: total cyc=31, tot inst=8, tot stalls=0
 ```
-
-------------------------------------------------------------------
-#### Part 3: write tiny programs to show other counters.
-
-This is a choose-your-own adventure:  look through the counters and write
-the smallest programs you can to show off something they can measure.
-You'll notice that some of them don't do exactly what they claim.
-
-Some easy ones:
-  1. Count the write back drained.  AFAIK, both the "dsb" and "dmb"
-     barriers increment.  We have function calls for these in libpi.
-     You can also inline them:
-
-        cp_asm_set_raw(cp15_dmb, p15, 0, c7, c10, 5)
-        cp_asm_set_raw(cp15_dsb, p15, 0, c7, c10, 4)
-        #define cp15_dmb cp15_dmb_set_raw
-        #define cp15_dsb cp15_dsb_set_raw
-
-  2. Data accesses (`data_access`): seems to work as expected.  I
-     used `volatile` accesses to defeat the compiler.  
-
-     Puzzle (that I don't know): why does the `wb_drain` (0x12) also
-     increase?  This doesn't make sense to me.
-
-  3. call-ret: the call (`call_cnt`) and return (`ret_hit`) counters
-     for me only seem to work with the branch prediction turned on.
-     And the return hits seem to max out at 3.  Let me know if you figure
-     out anything more than this!
-
-  4. Branch: branches include at least "branch and link" (function calls).
-     The branch counters are unclear to me, tbh.
-
-I'll add some suggestions (which you can ignore) as the lab goes.
-If you see this sentence do a pull!
-
-Ideally, you can use the counters to infer and validate things about the
-arm1176 chip --- cache size, associativity, prefetching instructions,
-etc.
-
-For cases where the code behaves weirdly, figure out what is going on,
-ideally using some of the other counters.
-
-------------------------------------------------------------------
-### Extension: Use PMU counters in your profiler
-
-For this, add some PMU counters to your profiler and show that 
-they actually give sensible results.
-
-------------------------------------------------------------------
-### Extension: Do a hierarchical profiler
-
-Seeing that a given instruction is run a lot, is great, but if it's in
-a routine called by many other routines you can't easily figure out how
-to optimize.  A very useful tool is a hierarchical profiler that tracks
-who called what, and when they did, how much it cost.  You can do a full
-graph, or do 2 deep, 3 deep, etc.  Any of them will be extremely useful.
-
-A great use of this is to apply it to your fat32 file system and use it
-to speed it up.  Massive improvements are possible!
-
-[single-step]: https://github.com/dddrrreee/cs140e-25win/tree/main/labs/9-debug-hw
-[interrupts]: https://github.com/dddrrreee/cs140e-25win/tree/main/labs/4-interrupts
-
-
 
