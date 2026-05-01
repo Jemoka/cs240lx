@@ -9,7 +9,7 @@
 
 // disable mismatch (RMW the enable bit in bcr0)
 void brkpt_mismatch_stop(void);
-void staff_brkpt_mismatch_stop(void);
+void staff_brkpt_gismatch_stop(void);
 
 // enable mismatch: 
 //   - turn on cp14 if need be.

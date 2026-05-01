@@ -127,3 +127,4 @@ MK_FN(terminal_reg_test)
 .globl terminal_reg_test_swi
 terminal_reg_test_swi:
     asm_not_reached()
+

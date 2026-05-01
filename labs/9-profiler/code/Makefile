@@ -1,11 +1,11 @@
 # very simple tests. start here.
 
-PROGS := tests/0-nop-test.c
-PROGS += tests/0-prof-test.c
-PROGS += tests/0-reg-test.c
+# PROGS := tests/calibration.c
+# PROGS += tests/0-prof-test.c
+# PROGS += tests/0-reg-test.c
 
 # when you want to start profiling
-# PROGS := tests/1-prof-test.c
+PROGS := tests/1-prof-test.c
 
 COMMON_SRC := ss-pixie.c
 COMMON_SRC += ss-pixie-asm.S
@@ -18,7 +18,7 @@ OUR_START = staff-start.S
 O := $(CS240LX_2026_PATH)/libpi/staff-objs/
 STAFF_OBJS += $(O)/staff-breakpoint.o
 
-BOOTLOADER=my-install
+BOOTLOADER=pi-install
 RUN = 1
 # CAN_EMIT=1
 

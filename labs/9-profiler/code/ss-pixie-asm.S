@@ -178,7 +178,21 @@ MK_TRAMPOLINE(interrupt,        4, int_vector)
 
 @ note: you'll want to customize this trampoline yourself 
 @ so you can have clean copies of the PMU counters.
-MK_TRAMPOLINE(prefetch_abort,   4, prefetch_abort_vector)
+@ MK_TRAMPOLINE(prefetch_abort,   4, prefetch_abort_vector)
+
+prefetch_abort:
+    MRC p15, 0, sp, c15, c12, 1 @ record a cheeky cycle count
+    MCR p15, 0, sp, c13, c0, 2 @ stick the cycle count in a random register
+    sub   lr, lr, #4
+    mov sp, #INT_STACK_ADDR
+    push  {r0-r12,lr}
+    MRC p15, 0, r1, c13, c0, 2 @ stick the cycle count in a random register
+    mov   r0, lr
+    bl    prefetch_abort_vector
+    pop   {r0-r12,lr}
+    mov sp, #7
+    MCR p15, 0, sp, c15, c12, 0 @ reset the cycle counter
+    movs    pc, lr
 
 @ we only expect <prefetch_abort> and <syscall> to get invoked.
 @ everything else will call a panic handler that dies (see
@@ -204,3 +218,18 @@ pixie_exception_vec:
     @ stack pointer.  here (1) we have a valid <sp>
     @ (2) we explicitly set the <sp> when we resume
     @ using <pixie_resume_asm> (below).
+
+
+.globl cheeky
+cheeky:
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    

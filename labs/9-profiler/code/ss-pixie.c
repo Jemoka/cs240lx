@@ -11,9 +11,15 @@
 
 #include "breakpoint.h"
 #include "cpsr-util.h"
+#include "memmap.h"
+#include "cycle-count.h"
+
+#define OVERHEAD 140
 
 // counter of the number of instructions.
 static volatile unsigned n_inst = 0;
+static int cycle_count_good = 0;
+static uint32_t last_pc;
 
 // use a swi instruction to invoke system
 //  see: <ss-pixie-asm.S>
@@ -36,9 +42,15 @@ void pixie_verbose(int verbose_p) {
     pixie_verbose_p = verbose_p;
 }
 
+// and a guard for whether the heap is initailized
+int pixie_heap_initialized_p = 0;
+// create a big ol' counts buffer to hold the counts for each instruction
+uint32_t *counts;
+uint32_t *cycles;
+
 // called on each single-step exception. see
 // <ss-pixie-asm.S>
-void prefetch_abort_vector(uint32_t pc) {
+void prefetch_abort_vector(uint32_t pc, uint32_t cycle_count) {
     if(!brkpt_fault_p())
         panic("have a non-breakpoint fault\n");
 
@@ -47,6 +59,18 @@ void prefetch_abort_vector(uint32_t pc) {
 
     // set a mismatch on the fault pc so that we can run it.
     brkpt_mismatch_set(pc);
+
+    // update the count for this instruction
+    counts[(pc - (uint32_t) __code_start__) / 4]++;
+    demand((pc - (uint32_t) __code_start__) % 4 == 0, "pc not word aligned?\n");
+    demand((pc >= (uint32_t) __code_start__) && (pc < (uint32_t) __code_end__), "pc out of range?\n");
+    if (cycle_count_good) {
+        // if the cycle count is good, then update the count for the last instruction
+        cycles[(last_pc - (uint32_t) __code_start__) / 4] += cycle_count;
+    } else {
+        cycle_count_good = 1;
+    }
+    last_pc = pc;
 
     // if you don't print: you don't have to do this.
     // if you do print, there is a race condition if we 
@@ -92,8 +116,7 @@ void pixie_syscall(int sysno, uint32_t *regs) {
 #include "asm-helpers.h"
 
 // 3-121 --- set exception jump table location.
-cp_asm_set(vector_base_asm, p15, 0, c12, c0, 0)
-
+cp_asm_set(vector_base_asm, p15, 0, c12, c0, 0);
 
 // start single step mismatching.
 //  1. sets up exception vectors (idempotent).
@@ -109,6 +132,21 @@ cp_asm_set(vector_base_asm, p15, 0, c12, c0, 0)
 //   2. in the single-step handler: ignore all PC values 
 //      until <pc> equals <ignore_until_pc>
 void pixie_start(void) {
+    if (!pixie_heap_initialized_p) {
+        kmalloc_init();
+    }
+
+    // allocate a big ol' counts buffer to hold the counts for each instruction
+    int n_instrs = (__code_end__ - __code_start__) / 4;
+    counts = kmalloc(n_instrs * sizeof(uint32_t));
+    for (int i = 0; i < n_instrs; i++) {
+        counts[i] = 0;
+    }
+    cycles = kmalloc(n_instrs * sizeof(uint32_t));
+    for (int i = 0; i < n_instrs; i++) {
+        cycles[i] = 0;
+    }
+
     // vector of exception handlers: see <ss-pixie-asm.S>
     // check alignment and then set the vector base to it.
     extern uint32_t pixie_exception_vec[];
@@ -165,5 +203,15 @@ unsigned pixie_stop(void) {
 }
 
 void pixie_dump(unsigned N) {
-    todo("build this");
+    // dump any instruction that was executed at least N  times
+    for (unsigned i = 0; i < (__code_end__ - __code_start__) / 4; i++) {
+        if(counts[i] >= N) {
+            printk("%x: %u invocation, %u cycles, %u avg cycles, %u correct avg cycles \n",
+                   (uint32_t) __code_start__ + i * 4,
+                   counts[i],
+                   cycles[i],
+                   cycles[i] / counts[i],
+                   cycles[i] / counts[i] - OVERHEAD);
+        }
+    }
 }
