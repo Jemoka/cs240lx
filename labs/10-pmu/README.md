@@ -393,7 +393,8 @@ Use the counters to figure out:
 ------------------------------------------------------------------
 #### Trivial counter example
 
-Simple example of using counters to measure:
+This overlaps with the previous, but here's a simple example of using
+some additional counters to measure:
   1. We enable instruction counting on event 0.
   2. We enable instruction stall counting on event 1.
   3. Measure before and after.
