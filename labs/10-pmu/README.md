@@ -1,6 +1,6 @@
 ## Performance counters
 
-Today is a unstructured, chose your-own-adventure lab that gets
+Today is an unstructured, choose-your-own-adventure lab that gets
 you into the details of how real hardware (the arm1176 + bcm2835) 
 works without needing a lot of infrastructure.
 
@@ -12,12 +12,12 @@ similar style:
   3. Real puzzles.
 
 The arm1176 has a bunch of interesting performance counters, such as cache
-misses, TLB misses, prediction misses, procedure calls.  You'll write
+misses, TLB misses, prediction misses, and procedure calls.  You'll write
 a simple library that exposes these, which will make it much easier to
 optimize code.
 
 The counters are provided by the "performance monitor unit" (PMU)
-described on pages 3-133 --- 3-140 (the PDF is in the ./docs in the last lab). 
+described on pages 3-133 --- 3-140 (the PDF is in the ./docs from the last lab). 
 Their main unfortunate limit is that:
   1. Only two can be enabled at any time (in addition to the "always
      on" cycle counter).
@@ -27,12 +27,12 @@ Their main unfortunate limit is that:
 These counters make it much easier to speed up your code --- it's hard to
 know the right optimization when you don't know what the bottleneck is.
 
-In addition, they can be used to test your understanding of the hardware.
---- if you believe you understand how the BTB, TLB, or cache works, write
+In addition, they can be used to test your understanding of the hardware:
+if you believe you understand how the BTB, TLB, or cache works, write
 code based on this understanding and measure if the expected result is
 the actual.  In almost all cases, the initial measurements will show
 something was wrong --- either in your belief, in the code that you
-wrote to measure, in how you read the docs.  But while counters take away
+wrote to measure, or in how you read the docs.  But while counters take away
 happiness, they also typically give a way to work towards enlightenment,
 in that you can use them to differentially debug what is going on,
 and arrive at a better place.
@@ -55,7 +55,7 @@ across all subsystems, with violent disrespect for abstraction boundaries.
 (Hence, why timing attacks in security work so well and are so hard
 to prevent.)  Something broken at some level?  Time will spike.  For us
 today: You measured some code and it takes 20 cycles --- reorder some
-operations and see if its still the same.  The ARM PMU rewards hardware
+operations and see if it's still the same.  The ARM PMU rewards hardware
 differential analysis: code takes 10 cycles and then the same exact code
 repeated takes 20 --- you can use different PMU counters to isolate why.
 
@@ -83,12 +83,12 @@ Base checkoff:
 Extensions:
    1. Find interesting weird effects.  (This should be easy.)  Isolate
       it down as to why (less easy).
-   2. While doing (1) at all can be easy, people have gotten PhD's 
+   2. While doing (1) at all can be easy, people have gotten PhDs 
       for pushing such analysis far enough.  The *why* can require
       insight and cleverness. There are enough interesting
-      discontinuites in the arm1176 that isolating distal reasons
+      discontinuities in the arm1176 that isolating distal reasons
       can require subtlety --- I spent 2 hours before lab today
-      trying to out why 8 back-to-back cycle count reads behaved
+      trying to figure out why 8 back-to-back cycle count reads behaved
       differently when aligned to 128 bytes vs 64 bytes.  (I will
       check in this code --- curious if you can do better.)
    3. Pull these into your profiler and make it more interesting.
@@ -118,7 +118,7 @@ The number one way to catch compiler chicanery:
   - Always look at the disassembled code in the list.  It's going to
     be confusing, but you can generally scan for the repeated "mcr" and
     "mrc" instructions to see where things start and end.
-  - Recall: whenever we compile program `foo.bin` the makefile will emit
+  - Recall: whenever we compile program `foo.bin` the Makefile will emit
     a disassembled version in `foo.list` --- today you'll absolutely
     need to look at this to isolate whether the compiler did something
     dumb/unexpected.
@@ -134,13 +134,13 @@ An incomplete set of ways to prevent:
   - Alignment can have a big impact that changes each time you re-link.
     Using the ".align" directive can help.
   - If you have the i-cache on --- each access it will bring in an
-    entire cache blocks.  This can cause weird things (why?)
+    entire cache block.  This can cause weird things (why?)
   - Ideally if you figure out something, cross-check it a second
     way.  Sometimes bullshit gives you the answer you expected
     and you declare success when in fact all you had was nonsense.
     (Be me, today.)
   - As mentioned, one easy way to defeat the compiler is to write your
-    own assembly. In addition when you are trying to have precise
+    own assembly. In addition, when you are trying to have precise
     control over layout it can be easier to allocate a large block and
     JIT into it.
 
@@ -159,9 +159,9 @@ One of the weird ones is:
     ...
 ```
 
-This is a old C hack used when you have a set of related values (in our
+This is an old C hack used when you have a set of related values (in our
 case the name of a counter, its integer value and its descriptive string)
-that youw want to group, but to select and instantiate in
+that you want to group, but select and instantiate in
 diferent ways.
 
 So the invocation:
@@ -175,7 +175,7 @@ enum {
 ```
 
 Defines a macro `PMU_ENUMS` (name doesn't matter) that when passed to
-`PMU_DEFS` will select the first argument `name`, make a enumeration
+`PMU_DEFS` will select the first argument `name`, make an enumeration
 identifier by concatenating `name` with a `PMU_` prefix and assign it 
 the second argument `val`.  So, after macro expansion we get:
 ```c
@@ -217,11 +217,11 @@ Which after expansion produces:
 ------------------------------------------------------------------
 #### Part 1: Implement `code/rpi-pmu.h`
 
-***NOTE: In the interests of getting people writing the weird programs
+***NOTE: In the interest of getting people writing the weird programs
 we actually pushed an implementation of this code/rpi-pmu.h.staff***
 
 The first thing to do is to define the PMU routines.  In the interest of
-getting to puzzle quickly we give you a bunch of the definitions and some
+getting to the puzzle quickly we give you a bunch of the definitions and some
 helper macros --- you have to write the low-level manipulation routines.
 
 Fill in the `todo` routines in `code/rpi-pmu.h`.  I'd suggest
@@ -293,9 +293,9 @@ When you are done, the following tests should run:
 ```
 
 
- 3. `2-pmu-test.c`: as you  can see from the above code,
+ 3. `2-pmu-test.c`: as you can see from the above code,
     there's a lot of repetitive code for measuring.  This test uses the
-    helper macro `pmu_stmt_measure` measure the code with less typing.
+    helper macro `pmu_stmt_measure` to measure the code with less typing.
 
     The macro takes a message to print, two types of events, and then
     a statement block that it runs.
@@ -363,7 +363,7 @@ Use the counters to figure out:
      JIT some code to show that without this you get stale results,
      and with it, you get accurate ones.
 
-  3. Chapter 3 of 1176: p 3-75: has instructions to invalidate a i-cache
+  3. Chapter 3 of 1176: p 3-75: has instructions to invalidate an i-cache
      block by "mva" and to prefetch by mva.  Implement these
      and use the counters to show that your implementation works as
      expected.
@@ -384,9 +384,9 @@ Use the counters to figure out:
      sets up a simple identity VM mapping and does some simple tests to
      validate expected behavior using the PMU counters: 
         1. That the first data access to cached memory misses in 
-           the both the d-cache and micro d-tlb (compulsory misses).
-        2. That subeqeuent accesses hit;
-        3. After invalidating the tlb,  everything misses again.
+           both the d-cache and micro d-tlb (compulsory misses).
+        2. That subsequent accesses hit;
+        3. After invalidating the tlb, everything misses again.
 
      You can easily mess with the test to measure other things.
 
@@ -394,7 +394,7 @@ Use the counters to figure out:
 #### Part 3: write tiny programs to show other counters.
 
 This is a choose-your-own adventure:  look through the counters and write
-the smallest programs you can to shows off something they can measure.
+the smallest programs you can to show off something they can measure.
 You'll notice that some of them don't do exactly what they claim.
 
 Some easy ones:
@@ -411,7 +411,7 @@ Some easy ones:
      used `volatile` accesses to defeat the compiler.  
 
      Puzzle (that I don't know): why does the `wb_drain` (0x12) also
-     increase?  this doesn't make sense to me.
+     increase?  This doesn't make sense to me.
 
   3. call-ret: the call (`call_cnt`) and return (`ret_hit`) counters
      for me only seem to work with the branch prediction turned on.
@@ -425,7 +425,7 @@ I'll add some suggestions (which you can ignore) as the lab goes.
 If you see this sentence do a pull!
 
 Ideally, you can use the counters to infer and validate things about the
-the arm1176 chip --- cache size, associativity, prefetching instructions,
+arm1176 chip --- cache size, associativity, prefetching instructions,
 etc.
 
 For cases where the code behaves weirdly, figure out what is going on,
@@ -440,9 +440,9 @@ they actually give sensible results.
 ------------------------------------------------------------------
 ### Extension: Do a hierarchical profiler
 
-Seeing that a given instruction is run alot, is great, but if it's in
+Seeing that a given instruction is run a lot, is great, but if it's in
 a routine called by many other routines you can't easily figure out how
-to optimize.   A very useful tool is a hierarchical profiler that tracks
+to optimize.  A very useful tool is a hierarchical profiler that tracks
 who called what, and when they did, how much it cost.  You can do a full
 graph, or do 2 deep, 3 deep, etc.  Any of them will be extremely useful.
 
