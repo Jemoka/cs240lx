@@ -534,3 +534,67 @@ Couple notes:
     disassembled code.
  2. We use `volatile` with the assembly so it doesn't get reordered with
     respect to the PMU reads (also `volatile` inline assembly).
+
+------------------------------------------------------------------
+#### Example: compiler surprise.
+
+
+I was trying to test the return count and return hit counters so 
+wrote the trivial factorial function:
+
+```c
+unsigned fact(unsigned n) {
+    if(!n)
+        return 1;
+    return n*fact(n-1);
+}
+```
+
+And measured it using the macro:
+
+```c
+    // ret_miss doesn't change?
+    pmu_stmt_measure(msg,
+        ret_cnt, ret_hit,
+    {
+        fact(4);
+    });
+```
+
+With the branch target cache off/on we get:
+```
+5-call-ret.c:17:  no cache: call-ret : fact(5):
+	311 : cycles
+	0 : return count
+	0: return predicted
+5-call-ret.c:17:  cache: call-ret : fact(5):
+	150 : cycles
+	1 : return count
+	1: return predicted
+5-call-ret.c:17:  cache: call-ret : fact(5):
+	62 : cycles
+	1 : return count
+	2: return predicted
+```
+
+So a few things:
+  1. Doesn't seem to apply when branch cache off?
+  2. We have a factorial of 5 and only get 1 return count.  Weird.
+
+I spent 10 minutes looking at this (admittedly Jack was talking
+alot) before thinking to check the machine code, which shows the
+the tail-call optimization reason:
+```
+00008334 <fact>:
+    8334:   e2503000    subs    r3, r0, #0
+    8338:   e3a00001    mov r0, #1
+    833c:   012fff1e    bxeq    lr
+    8340:   e1a02003    mov r2, r3
+    8344:   e2533001    subs    r3, r3, #1
+    8348:   e0000092    mul r0, r2, r0
+    834c:   1afffffb    bne 8340 <fact+0xc>
+    8350:   e12fff1e    bx  lr
+```
+
+So, good to look at machine code to make sure you are measuring what
+you intended to.
