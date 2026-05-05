@@ -38,6 +38,8 @@ Labs:
      to do cycle counting.
    - [10-pmu](10-pmu): use the arm performance counters to figure
      out interesting things.
+   - [11-ws2812b](11-ws2812b): use the timing knowledge you gained from 
+     the lab 10 (PMU) to write a addressable light array driver.
 
 Possible labs, many more TBA (note: these aren't checked in yet):
    - [11-memcheck-trap](11-memcheck-trap): use domain protection and 
@@ -45,8 +47,6 @@ Possible labs, many more TBA (note: these aren't checked in yet):
    - [12-memcheck-trap-II](12-memcheck-trap-II): use the memory tracer
      you built and your debug allocator to make a simple purify-style 
      memory checker in a couple hundred lines of code.
-   - [13-ws2812b](13-ws2812b): use the timing knowledge you gained from 
-     the lab 10 (PMU) to write a addressable light array driver.
    - [14-stepper-motor](14-stepper-motor):  write a driver for
      the A4988 board and use it to drive a nema 17 stepper motor.  You
      can use this to build stuff all the way from robots to music.
