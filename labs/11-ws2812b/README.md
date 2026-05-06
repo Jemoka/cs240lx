@@ -248,7 +248,7 @@ static uint32_t measure_pin(unsigned pin) {
     uint32_t s = cycle_cnt_read();
     gpio_set_input_raw(pin);
 
-    for(int i = 0; i < 10000; i++) {
+    for(int i = 0; i < 1000000; i++) {
         if(!gpio_read_raw(pin))
             break;
     }
@@ -259,6 +259,7 @@ static uint32_t measure_pin(unsigned pin) {
 void notmain(void) {
     enum { pin= 25 };
     gpio_set_pulldown(pin);
+    caches_enable();
 
     for(int i = 0; i < 2000; i++) {
         output("cycles = %d\n", measure_pin(pin));
@@ -269,19 +270,14 @@ void notmain(void) {
 
 I get:
 ```
-cycles = 926  # not touched
-cycles = 928
-cycles = 926
-cycles = 926
-cycles = 929
-cycles = 928
-cycles = 926
-cycles = 1346 # touched
-cycles = 1626
-cycles = 1774
-cycles = 2186
-cycles = 2186
-cycles = 2328
+cycles = 901  # not touched
+cycles = 904
+cycles = 904
+cycles = 904
+cycles = 1125 # touched
+cycles = 1906
+cycles = 2584
+cycles = 3368
 ```
 
 If you play around with this you can find a good threshold that splits
