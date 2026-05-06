@@ -208,12 +208,30 @@ and do what they claim.
 -------------------------------------------------------------------------
 ### Part 3: do something cute with the interface.
 
-***NOTE: I'm pushing a cute hack I saw on twitter.  If you see this
-do a pull***
-
 This should be most of the time in the lab.  A lot of people have gotten
 a lot of free trips and other things because they were able to do tricks
 with light strips.   Try to come up with something cute using you code.
+
+-------------------------------------------------------------------------
+### Cute twitter game!
+
+I thought this was really cute.  Rules seem to be:
+  1. Lights marching forward.
+  2. If you hit a pixel with the same color, it dies.
+  3. If you hit a pixel with the wrong color, it keeps advancing.
+
+<p align="center">
+  <img src="images/twitter-shoot.mp4" width="350" />
+</p>
+
+
+For stills:
+
+<p float="left">
+  <img src="images/shoot-1.jpg" width="230" />
+  <img src="images/shoot-2.jpg" width="230" />
+</p>
+
 
 -------------------------------------------------------------------------
 ### Extensions
