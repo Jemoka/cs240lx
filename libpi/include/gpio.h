@@ -50,6 +50,7 @@ void gpio_set_pullup(unsigned pin);
 void gpio_set_pulldown(unsigned pin);
 // set <pin> back to the default state: no pull up, no pulldown.
 void gpio_pud_off(unsigned pin);
+void gpio_set_pud_off(unsigned pin);
 
 int gpio_get_pud(unsigned pin);
 
