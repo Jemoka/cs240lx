@@ -229,7 +229,7 @@ For stills:
 </p>
 
 
-### How to do buttons.
+### How to do buttons without buttons
 
 We don't have buttons (sorry), but you can do a cute hack to turn jumpers
 into contact sensors by measuring how long parasitic capacitance takes
