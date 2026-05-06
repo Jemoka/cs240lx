@@ -229,6 +229,35 @@ For stills:
 </p>
 
 
+### How to do buttons.
+
+We don't have buttons (sorry), but you can do a cute hack to turn jumpers
+into contact sensors by measuring how long parasitic capacitance takes
+to discharge from a pin.
+
+If you run the following code in a loop you should see a low number when
+a pin is not touched and higher when it is:
+```c
+static uint32_t measure_pin(unsigned pin) {
+    // charge pin to 1.
+    gpio_set_output(pin);
+    gpio_write(pin, 1);
+
+    // measure how long takes to go to 0.
+    code_align();
+    uint32_t s = cycle_cnt_read();
+    gpio_set_input_raw(pin);
+
+    for(int i = 0; i < 10000; i++) {
+        if(!gpio_read_raw(pin))
+            break;
+    }
+    return cycle_cnt_read() - s;
+}
+```
+You can mess around with this (you might have to debounce) to 
+get clean readings and then use that to control the light strip.
+
 -------------------------------------------------------------------------
 ### Extensions
 
