@@ -56,17 +56,16 @@ Regular checkoff:
 
   1. `0-timing`: Implement the code in `0-timing` and make sure you
      have reasonable values.
-  2. `1-code`: Implement `WS2812.h` and `neopixel.h` and make sure the
-     four programs run.    These should pass the timing tests run by
-     `1-code/0-timing-check.c`.   Since part of this class is learning to
-     use datasheets, *please* only use the datasheet we have (in `doc/`)
-     and the comments in the given code, don't use blog posts, etc.
-
-     This header gets wrapped into a simple interface (`code/neopixel.h`)
-     Optimize the timings as far as you can and have the code still work.
-     The program `2-neopix.c` should work as expected.
-
-  2. Do something novel/cute with the light using your interface.
+  2. `1-code`: Implement `WS2812.h` and make sure the timing tests run by
+     `1-code/0-timing-check.c` pass.   Since part of this class is
+     learning to use datasheets, *please* only use the datasheet we have
+     (in `doc/`) and the comments in the given code, don't use blog
+     posts, etc.
+  3. The `WS2812b.h` header gets wrapped into a simple interface
+     (`1-code/neopixel.h`) Optimize the timings as far as you can and
+     have the code still work.  The programs in `1-code` should work
+     as expected.
+  4. Do something novel/cute with the light using your interface.
       1. use your IR remote to control the strip.
       2. use your accel/gyro to control the strip.
       3. control more than one strip at a time.  ideally where you
@@ -194,6 +193,9 @@ Note:
      if they are wrong, it will be hard to figure stuff out given the
      extra complexity of the ws2812b.
 
+-------------------------------------------------------------------------
+### Part 2: Make sure the sample programs run.
+
 After your code works, the four tests in the code directory should run
 and do what they claim.
   1. Make sure `1-blink.c` works with your code and then
@@ -204,14 +206,14 @@ and do what they claim.
      `2-neopix.c` does something.
 
 -------------------------------------------------------------------------
-### Part 2: do something cute with the interface.
+### Part 3: do something cute with the interface.
 
 ***NOTE: I'm pushing a cute hack I saw on twitter.  If you see this
 do a pull***
 
-A lot of people have gotten a lot of free trips and other things because
-they were able to do tricks with light strips.   Try to come up with
-something cute using you code.
+This should be most of the time in the lab.  A lot of people have gotten
+a lot of free trips and other things because they were able to do tricks
+with light strips.   Try to come up with something cute using you code.
 
 -------------------------------------------------------------------------
 ### Extensions
