@@ -451,3 +451,150 @@ to speed it up.  Massive improvements are possible!
 
 [single-step]: https://github.com/dddrrreee/cs140e-25win/tree/main/labs/9-debug-hw
 [interrupts]: https://github.com/dddrrreee/cs140e-25win/tree/main/labs/4-interrupts
+
+
+
+------------------------------------------------------------------
+#### Trivial counter example
+
+This overlaps with the previous, but here's a simple example of using
+some additional counters to measure:
+  1. We enable instruction counting on event 0.
+  2. We enable instruction stall counting on event 1.
+  3. Measure before and after.
+  4. Print!
+
+
+```c
+__attribute__((noinline))
+void
+measure_nops(const char *msg, int n) {
+    uint32_t cyc_s, cyc_e;
+    uint32_t inst0_s, inst0_e;
+    uint32_t stall1_s, stall1_e;
+
+    // enable the two events.
+    pmu_enable(0, PMU_inst_cnt);
+    pmu_enable(1, PMU_inst_stall);
+
+    cyc_s       = pmu_cycle_get();      // always on cycle counter
+    inst0_s     = pmu_event_get(0);     // instruction count
+    stall1_s    = pmu_event_get(1);     // stalls
+
+    asm volatile("nop");  // 1
+    asm volatile("nop");  // 2
+    asm volatile("nop");  // 3
+    asm volatile("nop");  // 4
+    asm volatile("nop");  // 5
+
+    cyc_e       = pmu_cycle_get();      // always on cycle counter
+    inst0_e     = pmu_event_get(0);     // instruction count
+    stall1_e    = pmu_event_get(1);     // stalls
+
+    output("%d:%s: total cyc=%d, tot inst=%d, tot stalls=%d\n",
+        n,
+        msg,
+        cyc_e - cyc_s,
+        inst0_e - inst0_s,
+        stall1_e - stall1_s);
+}
+```
+
+The result: 
+  1. You can see the number of instructions (8), which
+     you can validate by looking at the list.
+  2. You can see that the number of stalls drops dramatically
+     after caching.
+  3. If you add nops: look at the weird jump!
+
+
+```
+0:no cache: total cyc=51, tot inst=8, tot stalls=23
+1:no cache: total cyc=49, tot inst=8, tot stalls=20
+2:no cache: total cyc=49, tot inst=8, tot stalls=20
+3:no cache: total cyc=49, tot inst=8, tot stalls=20
+4:no cache: total cyc=49, tot inst=8, tot stalls=20
+5:no cache: total cyc=49, tot inst=8, tot stalls=20
+6:no cache: total cyc=51, tot inst=8, tot stalls=23
+7:no cache: total cyc=51, tot inst=8, tot stalls=23
+8:no cache: total cyc=49, tot inst=8, tot stalls=20
+9:no cache: total cyc=49, tot inst=8, tot stalls=20
+---------------------------------------------------
+0:cache: total cyc=51, tot inst=8, tot stalls=23
+1:cache: total cyc=31, tot inst=8, tot stalls=0
+2:cache: total cyc=31, tot inst=8, tot stalls=0
+3:cache: total cyc=31, tot inst=8, tot stalls=0
+4:cache: total cyc=31, tot inst=8, tot stalls=0
+```
+
+Couple notes:
+ 1. We use the `noinline` attribute to keep the routine
+    isolated --- in this case not so much to defeat
+    optimization but to make it easy to decipher the
+    disassembled code.
+ 2. We use `volatile` with the assembly so it doesn't get reordered with
+    respect to the PMU reads (also `volatile` inline assembly).
+
+------------------------------------------------------------------
+#### Example: compiler surprise.
+
+
+I was trying to test the return count and return hit counters so 
+wrote the trivial factorial function:
+
+```c
+unsigned fact(unsigned n) {
+    if(!n)
+        return 1;
+    return n*fact(n-1);
+}
+```
+
+And measured it using the macro:
+
+```c
+    // ret_miss doesn't change?
+    pmu_stmt_measure(msg,
+        ret_cnt, ret_hit,
+    {
+        fact(5);
+    });
+```
+
+With the branch target cache off/on we get:
+```
+5-call-ret.c:17:  no cache: call-ret : fact(5):
+	311 : cycles
+	0 : return count
+	0: return predicted
+5-call-ret.c:17:  cache: call-ret : fact(5):
+	150 : cycles
+	1 : return count
+	1: return predicted
+5-call-ret.c:17:  cache: call-ret : fact(5):
+	62 : cycles
+	1 : return count
+	2: return predicted
+```
+
+So a few things:
+  1. Doesn't seem to apply when branch cache off?
+  2. We have a factorial of 5 and only get 1 return count.  Weird.
+
+I spent 10 minutes looking at this (admittedly Jack was talking
+alot) before thinking to check the machine code, which shows the
+the tail-call optimization reason:
+```
+00008334 <fact>:
+    8334:   e2503000    subs    r3, r0, #0
+    8338:   e3a00001    mov r0, #1
+    833c:   012fff1e    bxeq    lr
+    8340:   e1a02003    mov r2, r3
+    8344:   e2533001    subs    r3, r3, #1
+    8348:   e0000092    mul r0, r2, r0
+    834c:   1afffffb    bne 8340 <fact+0xc>
+    8350:   e12fff1e    bx  lr
+```
+
+So, good to look at machine code to make sure you are measuring what
+you intended to.
