@@ -285,6 +285,13 @@ not-touch from touch (1200 seemed fine for me).  If you mess around with
 the detection logic (you might have to debounce) to get clean readings
 you can then use that to control the light strip.
 
+These timings are pretty tight so you can also switch it to a floating
+pin (`gpio_set_pud_off(pin)`  instead of `gpio_set_pulldown(pin)`) ,
+but the downside is that the discharge when floating is much longer
+(hundreds of thousands of cycles).
+
+Playing with this trick is fun :).
+
 -------------------------------------------------------------------------
 ### Extensions
 
