@@ -215,18 +215,14 @@ with light strips.   Try to come up with something cute using you code.
 -------------------------------------------------------------------------
 ### Cute twitter game!
 
-I thought this was really cute.  Rules seem to be:
+I thought [this was really cute](https://x.com/i/status/2048894961815580888).  Rules seem to be:
   1. Lights marching forward.
   2. If you hit a pixel with the same color, it dies.
   3. If you hit a pixel with the wrong color, it keeps advancing.
 
-<p align="center">
-  <img src="images/twitter-shoot.mp4" width="350" />
-</p>
-
+Cute video in: ./images/twitter-shoot.mp4.
 
 For stills:
-
 <p float="left">
   <img src="images/shoot-1.jpg" width="230" />
   <img src="images/shoot-2.jpg" width="230" />
