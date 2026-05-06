@@ -254,9 +254,40 @@ static uint32_t measure_pin(unsigned pin) {
     }
     return cycle_cnt_read() - s;
 }
+
+// trivial driver
+void notmain(void) {
+    enum { pin= 25 };
+    gpio_set_pulldown(pin);
+
+    for(int i = 0; i < 2000; i++) {
+        output("cycles = %d\n", measure_pin(pin));
+        delay_ms(100);
+    }
+}
 ```
-You can mess around with this (you might have to debounce) to 
-get clean readings and then use that to control the light strip.
+
+I get:
+```
+cycles = 926  # not touched
+cycles = 928
+cycles = 926
+cycles = 926
+cycles = 929
+cycles = 928
+cycles = 926
+cycles = 1346 # touched
+cycles = 1626
+cycles = 1774
+cycles = 2186
+cycles = 2186
+cycles = 2328
+```
+
+If you play around with this you can find a good threshold that splits
+not-touch from touch (1200 seemed fine for me).  If you mess around with
+the detection logic (you might have to debounce) to get clean readings
+you can then use that to control the light strip.
 
 -------------------------------------------------------------------------
 ### Extensions
