@@ -17,9 +17,7 @@ that runs on this system and flags whens a load or store references
 outside of blocks of memory allocated using a slightly modified version
 of your checking allocator.
 
-#### Checkoff
-
-Checkoff:
+***Checkoff***:
   - Write your own tracing system based on the examples.
   - Write some tests that shows your system works.
   - Port it to the `memtrace` system we defined (or write your own
