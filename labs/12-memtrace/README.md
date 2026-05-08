@@ -200,51 +200,37 @@ way to understand the concepts (better than reading manauls!).
 ------------------------------------------------------------------------
 ### Part 2.  write `code/memtrace.c`
 
-Now, we'll extend your previous code into a simple memory tracing
-system that makes it easy to drop in new checkers.  The interface is in
-`code/memtrace.h`.
+Now, we'll slightly extend your previous code by letting the client
+provide routines to call before performing the trapping op (`pre`)
+and after (`post`) as long as a pointer to data.
 
-The initialization routine:
+
+The interface (`code/memtrace.h`) mostly matches that of part
+1, with the main change that our initialization has more 
+parameters:
 ```
-    void memtrace_init( void *data,
-        memtrace_fn_t pre,
-        memtrace_fn_t post,
-        unsigned trap_dom);
+    // One time initialization.  Sets up exceptions, VM, etc 
+    // (as in part 1):
+    // - <data>: a pointer to data that gets passed to client handlers
+    // - <pre>: called when a memory instruction traps, before 
+    //   running the faulting instruction.
+    // - <post>: called when a memory instruction traps, after 
+    //   running the instruction.
+    // - <trap_dom>: the domain id associated with all trapping 
+    //   memory.
+    void memtrace_init( void *data, memtrace_fn_t pre,
+                memtrace_fn_t post, unsigned trap_dom);
 ```
-Takes:
-  - `data`: a pointer to data that gets passed to client handlers
-    `pre` and `post`.
-  - `pre`: called when a memory instruction traps, before running the
-     instruction.
-  - `post`: called when a memory instruction traps, after running the
-     instruction.
-  - `trap_dom`: the domain id associated with all trapping memory.
 
-At least one of `pre` and `post` should be defined.  For today, this 
-routine calls the code to initialize the virtual memory system.
-The handlers are called with a `memtrace.h:fault_ctx` structure
-that takes provides:
-  - `r`: a pointer to the current fault regs.
-  - `pc`: the initial fault pc (note the fault regs pc value `r->regs[15]`
-    will differ in post since that gets called after the instruction.
-  - `addr`: the memory address of the fault.
-  - `nbytes`: the size of the access.  NOTE: for right now we always pass 4, 
-     but this is not correct.   A good extension is to make it not so stupid.
-  - `load_p`: whether it was a load (`load_p=1`) or store (`load_p=0`).
-
-Like your original system is provides routines for 
-  1. Turning trapping on: `memtrace_trap_enable`.
-  2. And off:`memtrace_trap_disable`.
-
-Big picture:
-  - For today, `memtrace_init` sets up virtual memory by calling
+Notes:
+  - At least one of `pre` and `post` should be defined.  
+  - For today, this routine calls the code to initialize the
+    virtual memory system.   It sets up virtual memory by calling
     `sbrk-trap.c:sbrk_init`.    This isn't how we'd to it for real since
     it makes things hard to compose, but keeps today more simple.
-
   - `sbrk_init` calls the same VM code as we used last lab
     (`vm_map_everything`).  `vm_map_everything` allocates a 1MB heap
     with its own private domain id (so we can easily trap accesses to it).
-
     `sbrk_init` also allocates a second 1MB used by its trivial 
     non-trapping heap allocator (`notrap_alloc`).  
 
@@ -259,17 +245,43 @@ Big picture:
     Alternatively you could cap the main heap size and devote an
     equivalant amount of memory from the non-trapping heap to it.
 
-What is success:
-  1. The few tests in `tests-memtrace` pass. 
+The handlers are called with a `memtrace.h:fault_ctx` structure:
+```c
+typedef struct fault_ctx {
+    // maybe have separate <pre:regs> and <post:regs>
+    regs_t *r;              // registers for fault (16 general + cpsr)
+                            // sufficient for <switchto>.
+    uint32_t pc;            // same as <pre:r->regs[15]>.  won't 
+                            // be the same for <post>
+
+    // the following are the same for pre/post.
+    uint32_t addr;          // memory address of fault.
+    unsigned nbytes;        // number of bytes of access [note: you'll need
+                            // to implement this calculation]
+    unsigned load_p:1;      // access = load (=1), or store (=0).
+} fault_ctx_t;
+```
+This structure provides:
+  - `r`: a pointer to the current fault regs.
+  - `pc`: the initial fault pc (note the fault regs pc value `r->regs[15]`
+    will differ in post since that gets called after the instruction.
+  - `addr`: the memory address of the fault.
+  - `nbytes`: the size of the access.  NOTE: for right now we always pass 4, 
+     but this is not correct.   A good extension is to make it not so stupid.
+  - `load_p`: whether it was a load (`load_p=1`) or store (`load_p=0`).
 
 #### A simple example
 
 To understand the interface, the easiest thing is to look at the couple
 of tests in `tests-memtrace`.    Here's one easy one:
 ```c
-// simple example to print on each fault.
 static int trace_handler(void *data, fault_ctx_t *f) {
-    output("\tFAULT: pc=%x, addr=%x, nbytes=%d, load=%d\n",
+    // increment fault count
+    int *cnt = data;
+    *cnt += 1;
+
+    output("\t%d: FAULT: pc=%x, addr=%x, nbytes=%d, load=%d\n",
+                    *cnt,
                     f->pc,
                     f->addr,
                     f->nbytes,
@@ -277,10 +289,10 @@ static int trace_handler(void *data, fault_ctx_t *f) {
     return MEMTRACE_OK;
 }
 
-// 1. setup memory tracing, then fault.
 void notmain(void) {
     // initialize tracing (also VM and exceptions).
-    memtrace_init(0, trace_handler, 0, dom_trap);
+    int cnt = 0;
+    memtrace_init(&cnt, trace_handler, 0, dom_trap);
     memtrace_yap_off(); // turn off tracing
 
     volatile uint32_t *u = kmalloc(sizeof *u);
@@ -294,8 +306,10 @@ void notmain(void) {
 
 When you run this will print:
 ```
-	FAULT: pc=0x80c4, addr=0x104000, nbytes=4, load=0
-	FAULT: pc=0x80c8, addr=0x104000, nbytes=4, load=1
+TRACE:notmain:about to turn on tracing: expect 1 store, 1 load
+	1: FAULT: pc=0x80e0, addr=0x104000, nbytes=4, load=0
+	2: FAULT: pc=0x80e4, addr=0x104000, nbytes=4, load=1
+DONE!!!
 ```
 
 
