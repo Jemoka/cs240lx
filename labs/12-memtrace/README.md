@@ -1,3 +1,13 @@
+## Errata
+
+***NOTE:***
+  - The watchpoint example was adapted from single stepping,
+    and unfortunately has a couple stupid stale comments about breakpoints
+    and single-stepping.  We are doing watchpoints, not single stepping.
+    We will be getting watchpoint exceptions (a subset of data abort
+    faults), not breakpoint exceptions (which are a subset of prefetch
+    abort faults).
+
 ## Memory tracing
 
 Today you'll use the ARMv6 domain faults and debug watchpoints to make
