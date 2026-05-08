@@ -208,12 +208,89 @@ and do what they claim.
 -------------------------------------------------------------------------
 ### Part 3: do something cute with the interface.
 
-***NOTE: I'm pushing a cute hack I saw on twitter.  If you see this
-do a pull***
-
 This should be most of the time in the lab.  A lot of people have gotten
 a lot of free trips and other things because they were able to do tricks
 with light strips.   Try to come up with something cute using you code.
+
+-------------------------------------------------------------------------
+### Cute twitter game!
+
+I thought [this was really cute](https://x.com/i/status/2048894961815580888).  Rules seem to be:
+  1. Lights marching forward.
+  2. If you hit a pixel with the same color, it dies.
+  3. If you hit a pixel with the wrong color, it keeps advancing.
+
+Cute video in: ./images/twitter-shoot.mp4.
+
+For stills:
+<p float="left">
+  <img src="images/shoot-1.jpg" width="230" />
+  <img src="images/shoot-2.jpg" width="230" />
+</p>
+
+
+### How to do buttons without buttons
+
+We don't have buttons (sorry), but you can do a cute hack to turn jumpers
+into contact sensors by measuring how long parasitic capacitance takes
+to discharge from a pin.
+
+If you run the following code in a loop you should see a low number when
+a pin is not touched and higher when it is:
+```c
+static uint32_t measure_pin(unsigned pin) {
+    // charge pin to 1.
+    gpio_set_output(pin);
+    gpio_write(pin, 1);
+
+    // measure how long takes to go to 0.
+    code_align();
+    uint32_t s = cycle_cnt_read();
+    gpio_set_input_raw(pin);
+
+    for(int i = 0; i < 1000000; i++) {
+        if(!gpio_read_raw(pin))
+            break;
+    }
+    return cycle_cnt_read() - s;
+}
+
+// trivial driver
+void notmain(void) {
+    enum { pin= 25 };
+    gpio_set_pulldown(pin);
+    caches_enable();
+
+    for(int i = 0; i < 2000; i++) {
+        output("cycles = %d\n", measure_pin(pin));
+        delay_ms(100);
+    }
+}
+```
+
+I get:
+```
+cycles = 901  # not touched
+cycles = 904
+cycles = 904
+cycles = 904
+cycles = 1125 # touched
+cycles = 1906
+cycles = 2584
+cycles = 3368
+```
+
+If you play around with this you can find a good threshold that splits
+not-touch from touch (1200 seemed fine for me).  If you mess around with
+the detection logic (you might have to debounce) to get clean readings
+you can then use that to control the light strip.
+
+These timings are pretty tight so you can also switch it to a floating
+pin (`gpio_set_pud_off(pin)`  instead of `gpio_set_pulldown(pin)`) ,
+but the downside is that the discharge when floating is much longer
+(hundreds of thousands of cycles).
+
+Playing with this trick is fun :).
 
 -------------------------------------------------------------------------
 ### Extensions
