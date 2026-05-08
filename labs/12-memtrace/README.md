@@ -195,11 +195,12 @@ understand the concepts (better than reading manauls!).
 ------------------------------------------------------------------------
 ### Part 2.  write `code/memtrace.c`
 
-***NOTE: I'm going to add an example here.  Do a pull if see this.***
-
 Now, we'll extend your previous code into a simple memory tracing system
 that makes it easy to drop in new checkers.  The interface is in
 `code/memtrace.h`. 
+
+
+
 
 The initialization routine:
 ```
@@ -256,11 +257,46 @@ Big picture:
     Alternatively you could cap the main heap size and devote an
     equivalant amount of memory from the non-trapping heap to it.
 
-To understand the interface, the easiest thing is to look at the couple
-of tests in `tests-memtrace`.
-
 What is success:
   1. The few tests in `tests-memtrace` pass. 
+
+#### A simple example
+
+To understand the interface, the easiest thing is to look at the couple
+of tests in `tests-memtrace`.    Here's one easy one:
+
+```c
+// simple example to print on each fault.
+static int trace_handler(void *data, fault_ctx_t *f) {
+    output("\tFAULT: pc=%x, addr=%x, nbytes=%d, load=%d\n",
+                    f->pc,
+                    f->addr,
+                    f->nbytes,
+                    f->load_p);
+    return MEMTRACE_OK;
+}
+
+// 1. setup memory tracing, then fault.
+void notmain(void) {
+    // initialize tracing (also VM and exceptions).
+    memtrace_init(0, trace_handler, 0, dom_trap);
+    memtrace_yap_off(); // turn off tracing
+
+    volatile uint32_t *u = kmalloc(sizeof *u);
+    trace("about to turn on tracing: expect 1 store, 1 load\n");
+    memtrace_trap_enable();
+        *u = 1;
+        *u;
+    memtrace_trap_disable();
+}
+```
+
+When you run this will print:
+```
+	FAULT: pc=0x80c4, addr=0x104000, nbytes=4, load=0
+	FAULT: pc=0x80c8, addr=0x104000, nbytes=4, load=1
+```
+
 
 ------------------------------------------------------------------------
 #### Extension: compute the actual number of bytes accessed.
