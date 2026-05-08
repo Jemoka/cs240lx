@@ -160,27 +160,27 @@ all heap addresses as discussed in the backgrond section above.
   1. Combine both examples into a system that will trace heap memory faults.
   2. It should implement the following initialization routine (called
      by the client test case):
-```
-        void memtrace_init(void);
-```
+
+            void memtrace_init(void);
+
      That will do a one-time initialization of everything (VM, heap,
      exception handlers) that is needed.  You can just steal all the
      code for this from the examples.  In a real system these pieces
      would be sharded-out in a better way, but for now we cut corners.
   3. On memory traps (before running watchpoint) it should call the client
      routine (this will be in each test case):
-```
+
             void memtrace_handler(regs_t *r, uint32_t fault_addr, int load_p);
-```
+
      With the fault registers `r`, the faulting address `fault_addr`
      and whether the fault was a load or store.
-  4. Implement a:
-```
-    // trapping on
-    void memtrace_trap_enable(void);
-    // trapping off
-    void memtrace_trap_disable(void);
-```
+  4. Implement routines to turn trapping off and on:
+
+            // trapping on
+            void memtrace_trap_enable(void);
+            // trapping off
+            void memtrace_trap_disable(void);
+
   5. Rewrite the example's code plus a couple other examples to show it
      show that your implementation works.
 
@@ -198,9 +198,6 @@ understand the concepts (better than reading manauls!).
 Now, we'll extend your previous code into a simple memory tracing system
 that makes it easy to drop in new checkers.  The interface is in
 `code/memtrace.h`. 
-
-
-
 
 The initialization routine:
 ```
@@ -264,7 +261,6 @@ What is success:
 
 To understand the interface, the easiest thing is to look at the couple
 of tests in `tests-memtrace`.    Here's one easy one:
-
 ```c
 // simple example to print on each fault.
 static int trace_handler(void *data, fault_ctx_t *f) {
