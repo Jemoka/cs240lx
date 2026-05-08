@@ -1,4 +1,4 @@
-## Memcheck trap II: the system.
+## Memory tracing
 
 Today you'll use the ARMv6 domain faults and debug watchpoints to make
 your own simple memory tracing system that traps every load and store.
