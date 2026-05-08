@@ -1,6 +1,4 @@
-## Errata
-
-***NOTE:***
+***Errata***:
   - The watchpoint example was adapted from single stepping,
     and unfortunately has a couple stupid stale comments about breakpoints
     and single-stepping.  We are doing watchpoints, not single stepping.
