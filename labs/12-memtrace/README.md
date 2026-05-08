@@ -360,6 +360,7 @@ BCM memory better.  You may need to put these in domain 0 since we map
 device memory (BCM) using 16MB memory supersections and the arm1176 doc
 states supersections have a domain 0.  (Note, I haven't tested if this
 is true for pinned mappings or only true for page tables.)
+
 ------------------------------------------------------------------------
 #### Extension: fancier device memory checker
 
