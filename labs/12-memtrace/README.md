@@ -157,47 +157,52 @@ Note:
 Before building the whole system, we'll first take the examples above
 and combine them into a simple mem-trace interface that will trap on
 all heap addresses as discussed in the backgrond section above.
-  1. Combine both examples into a system that will trace heap memory faults.
-  2. It should implement the following initialization routine (called
-     by the client test case):
 
-            void memtrace_init(void);
+You can build this by combining both the watchpoint and trap examples
+into a system that will trace heap memory faults.  For checkoff, you
+should rewrite the example's code plus a couple other examples to show 
+that your implementation works.
 
-     That will do a one-time initialization of everything (VM, heap,
-     exception handlers) that is needed.  You can just steal all the
-     code for this from the examples.  In a real system these pieces
-     would be sharded-out in a better way, but for now we cut corners.
-  3. On memory traps (before running watchpoint) it should call the client
-     routine (this will be in each test case):
+The basic interface:
 
-            void memtrace_handler(regs_t *r, uint32_t fault_addr, int load_p);
+```c
+    // Initialize tracing (it should setup VM, exceptions, etc).
+    // Called by each client test case.
+    void memtrace_init(void);
 
-     With the fault registers `r`, the faulting address `fault_addr`
-     and whether the fault was a load or store.
-  4. Implement routines to turn trapping off and on:
+    // Client routine (defined in each test) called on each memory 
+    // trap, before running watchpoint.
+    // - <r>: the fault registers.
+    // - <fault_addr>: the faulting memory address 
+    // - <load_p>: 1 if load, 0 if store.
+    void memtrace_handler(regs_t *r, uint32_t fault_addr, int load_p);
 
-            // trapping on
-            void memtrace_trap_enable(void);
-            // trapping off
-            void memtrace_trap_disable(void);
-
-  5. Rewrite the example's code plus a couple other examples to show it
-     show that your implementation works.
+    // Turn trapping on
+    void memtrace_trap_enable(void);
+    // Turn trapping off
+    void memtrace_trap_disable(void);
+```
 
 
-I would make a copy of the trap example and add the pieces of the
-watchpoint example that you need --- I think about 50 lines of code
-in total.
+Notes:
+  1. `memtrace_init()`: does a one-time initialization of everything
+     (VM, heap, exception handlers) that is needed.  You can just steal
+     all the code for this from the examples.  In a real system these
+     pieces would be sharded-out in a better way, but for now we cut
+     corners.
+  2. I would make a copy of the trap example and add the pieces of the
+     watchpoint example that you need --- I think about 50 lines of code
+     in total.
 
-Rewriting it in this way will hopefully give an easy, active way to
-understand the concepts (better than reading manauls!).
+Rewriting the examples in this way will hopefully give an easy, active
+way to understand the concepts (better than reading manauls!).
 
 ------------------------------------------------------------------------
 ### Part 2.  write `code/memtrace.c`
 
-Now, we'll extend your previous code into a simple memory tracing system
-that makes it easy to drop in new checkers.  The interface is in
-`code/memtrace.h`. 
+Now, we'll extend your previous code into a simple memory tracing
+system that makes it easy to drop in new checkers.  The interface is in
+`code/memtrace.h`.
 
 The initialization routine:
 ```
