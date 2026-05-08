@@ -1,0 +1,41 @@
+staff-find-ttyusb.c:find_ttyusb_last:89:DEBUG:FOUND: </dev/ttyUSB0>
+my-install.c:main:150:DEBUG:my-install: tty-usb=</dev/ttyUSB0> program=<./trap-example.bin>: about to boot
+TRACE:simple_boot: sending 20540 bytes, crc32=30140fe4
+BOOT:waiting for a start
+BOOT:bootloader: Done.
+listening on ttyusb=</dev/ttyUSB0>
+TRACE:notmain:5 total mappings, domain = 10100
+TRACE:notmain:about to do a PUT32!
+TRACE:notmain:about to do a GET!
+TRACE:notmain:0: success: got=0xfaf0faf0, expect=0xfaf0faf0
+TRACE:notmain:about to do a PUT32!
+TRACE:notmain:about to do a GET!
+TRACE:notmain:1: success: got=0xfaf0faf1, expect=0xfaf0faf1
+TRACE:notmain:about to do a PUT32!
+TRACE:notmain:about to do a GET!
+TRACE:notmain:2: success: got=0xfaf0faf2, expect=0xfaf0faf2
+TRACE:notmain:about to do a PUT32!
+TRACE:notmain:about to do a GET!
+TRACE:notmain:3: success: got=0xfaf0faf3, expect=0xfaf0faf3
+TRACE:notmain:about to do a PUT32!
+TRACE:notmain:about to do a GET!
+TRACE:notmain:4: success: got=0xfaf0faf4, expect=0xfaf0faf4
+TRACE:notmain:about to do a PUT32!
+TRACE:notmain:about to do a GET!
+TRACE:notmain:5: success: got=0xfaf0faf5, expect=0xfaf0faf5
+TRACE:notmain:about to do a PUT32!
+TRACE:notmain:about to do a GET!
+TRACE:notmain:6: success: got=0xfaf0faf6, expect=0xfaf0faf6
+TRACE:notmain:about to do a PUT32!
+TRACE:notmain:about to do a GET!
+TRACE:notmain:7: success: got=0xfaf0faf7, expect=0xfaf0faf7
+TRACE:notmain:about to do a PUT32!
+TRACE:notmain:about to do a GET!
+TRACE:notmain:8: success: got=0xfaf0faf8, expect=0xfaf0faf8
+TRACE:notmain:about to do a PUT32!
+TRACE:notmain:about to do a GET!
+TRACE:notmain:9: success: got=0xfaf0faf9, expect=0xfaf0faf9
+TRACE:notmain:SUCCESS!  passsed 10 trials
+DONE!!!
+
+BOOT: bootloader: pi exited.  cleaning up
