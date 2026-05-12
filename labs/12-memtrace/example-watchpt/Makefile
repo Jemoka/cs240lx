@@ -11,7 +11,7 @@ STAFF_OBJS += $(O)/staff-switchto-asm.o
 
 OPT_LEVEL = -O2
 
-BOOTLOADER=my-install
+BOOTLOADER=pi-install
 RUN = 1
 
 include $(CS240LX_2026_PATH)/libpi/mk/Makefile.robust-v3

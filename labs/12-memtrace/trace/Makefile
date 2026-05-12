@@ -1,6 +1,7 @@
-PROGS := trap-example.c
+PROGS := driver.c
 
 INC += -I./includes
+COMMON_SRC += memtrace.c
 
 O = $(CS240LX_2026_PATH)/libpi/staff-objs/
 STAFF_OBJS += $(O)/staff-kmalloc.o
@@ -8,6 +9,7 @@ STAFF_OBJS += $(O)/interrupts-vec-asm.o
 STAFF_OBJS += $(O)/staff-pinned-vm.o
 STAFF_OBJS += $(O)/staff-mmu-asm.o
 STAFF_OBJS += $(O)/staff-mmu.o
+STAFF_OBJS += $(O)/staff-watchpoint.o
 STAFF_OBJS += $(O)/staff-armv6-except.o
 STAFF_OBJS += $(O)/staff-breakpoint.o
 STAFF_OBJS += $(O)/staff-switchto-asm.o
