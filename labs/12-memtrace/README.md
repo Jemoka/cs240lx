@@ -1,3 +1,11 @@
+***Errata***:
+  - The watchpoint example was adapted from single stepping,
+    and unfortunately has a couple stupid stale comments about breakpoints
+    and single-stepping.  We are doing watchpoints, not single stepping.
+    We will be getting watchpoint exceptions (a subset of data abort
+    faults), not breakpoint exceptions (which are a subset of prefetch
+    abort faults).
+
 ## Memory tracing
 
 Today you'll use the ARMv6 domain faults and debug watchpoints to make
@@ -149,91 +157,80 @@ Note:
 Before building the whole system, we'll first take the examples above
 and combine them into a simple mem-trace interface that will trap on
 all heap addresses as discussed in the backgrond section above.
-  1. Combine both examples into a system that will trace heap memory faults.
-  2. It should implement the following initialization routine (called
-     by the client test case):
-```
-        void memtrace_init(void);
-```
-     That will do a one-time initialization of everything (VM, heap,
-     exception handlers) that is needed.  You can just steal all the
-     code for this from the examples.  In a real system these pieces
-     would be sharded-out in a better way, but for now we cut corners.
-  3. On memory traps (before running watchpoint) it should call the client
-     routine (this will be in each test case):
-```
-            void memtrace_handler(regs_t *r, uint32_t fault_addr, int load_p);
-```
-     With the fault registers `r`, the faulting address `fault_addr`
-     and whether the fault was a load or store.
-  4. Implement a:
-```
-    // trapping on
+
+You can build this by combining both the watchpoint and trap examples
+into a system that will trace heap memory faults.  For checkoff, you
+should rewrite the example's code plus a couple other examples to show 
+that your implementation works.
+
+The basic interface:
+
+```c
+    // Initialize tracing (it should setup VM, exceptions, etc).
+    // Called by each client test case.
+    void memtrace_init(void);
+
+    // Client routine (defined in each test) called on each memory 
+    // trap, before running watchpoint.
+    // - <r>: the fault registers.
+    // - <fault_addr>: the faulting memory address 
+    // - <load_p>: 1 if load, 0 if store.
+    void memtrace_handler(regs_t *r, uint32_t fault_addr, int load_p);
+
+    // Turn trapping on
     void memtrace_trap_enable(void);
-    // trapping off
+    // Turn trapping off
     void memtrace_trap_disable(void);
 ```
-  5. Rewrite the example's code plus a couple other examples to show it
-     show that your implementation works.
 
 
-I would make a copy of the trap example and add the pieces of the
-watchpoint example that you need --- I think about 50 lines of code
-in total.
+Notes:
+  1. `memtrace_init()`: does a one-time initialization of everything
+     (VM, heap, exception handlers) that is needed.  You can just steal
+     all the code for this from the examples.  In a real system these
+     pieces would be sharded-out in a better way, but for now we cut
+     corners.
+  2. I would make a copy of the trap example and add the pieces of the
+     watchpoint example that you need --- I think about 50 lines of code
+     in total.
 
-Rewriting it in this way will hopefully give an easy, active way to
-understand the concepts (better than reading manauls!).
+Rewriting the examples in this way will hopefully give an easy, active
+way to understand the concepts (better than reading manauls!).
 
 ------------------------------------------------------------------------
 ### Part 2.  write `code/memtrace.c`
 
-***NOTE: I'm going to add an example here.  Do a pull if see this.***
+Now, we'll slightly extend your previous code by letting the client
+provide routines to call before performing the trapping op (`pre`)
+and after (`post`) as long as a pointer to data.
 
-Now, we'll extend your previous code into a simple memory tracing system
-that makes it easy to drop in new checkers.  The interface is in
-`code/memtrace.h`. 
 
-The initialization routine:
+The interface (`code/memtrace.h`) mostly matches that of part
+1, with the main change that our initialization has more 
+parameters:
 ```
-    void memtrace_init( void *data,
-        memtrace_fn_t pre,
-        memtrace_fn_t post,
-        unsigned trap_dom);
+    // One time initialization.  Sets up exceptions, VM, etc 
+    // (as in part 1):
+    // - <data>: a pointer to data that gets passed to client handlers
+    // - <pre>: called when a memory instruction traps, before 
+    //   running the faulting instruction.
+    // - <post>: called when a memory instruction traps, after 
+    //   running the instruction.
+    // - <trap_dom>: the domain id associated with all trapping 
+    //   memory.
+    void memtrace_init( void *data, memtrace_fn_t pre,
+                memtrace_fn_t post, unsigned trap_dom);
 ```
-Takes:
-  - `data`: a pointer to data that gets passed to client handlers
-    `pre` and `post`.
-  - `pre`: called when a memory instruction traps, before running the
-     instruction.
-  - `post`: called when a memory instruction traps, after running the
-     instruction.
-  - `trap_dom`: the domain id associated with all trapping memory.
 
-At least one of `pre` and `post` should be defined.  For today, this 
-routine calls the code to initialize the virtual memory system.
-The handlers are called with a `memtrace.h:fault_ctx` structure
-that takes provides:
-  - `r`: a pointer to the current fault regs.
-  - `pc`: the initial fault pc (note the fault regs pc value `r->regs[15]`
-    will differ in post since that gets called after the instruction.
-  - `addr`: the memory address of the fault.
-  - `nbytes`: the size of the access.  NOTE: for right now we always pass 4, 
-     but this is not correct.   A good extension is to make it not so stupid.
-  - `load_p`: whether it was a load (`load_p=1`) or store (`load_p=0`).
-
-Like your original system is provides routines for 
-  1. Turning trapping on: `memtrace_trap_enable`.
-  2. And off:`memtrace_trap_disable`.
-
-Big picture:
-  - For today, `memtrace_init` sets up virtual memory by calling
+Notes:
+  - At least one of `pre` and `post` should be defined.  
+  - For today, this routine calls the code to initialize the
+    virtual memory system.   It sets up virtual memory by calling
     `sbrk-trap.c:sbrk_init`.    This isn't how we'd to it for real since
     it makes things hard to compose, but keeps today more simple.
-
   - `sbrk_init` calls the same VM code as we used last lab
     (`vm_map_everything`).  `vm_map_everything` allocates a 1MB heap
     with its own private domain id (so we can easily trap accesses to it).
-
     `sbrk_init` also allocates a second 1MB used by its trivial 
     non-trapping heap allocator (`notrap_alloc`).  
 
@@ -248,11 +245,73 @@ Big picture:
     Alternatively you could cap the main heap size and devote an
     equivalant amount of memory from the non-trapping heap to it.
 
-To understand the interface, the easiest thing is to look at the couple
-of tests in `tests-memtrace`.
+The handlers are called with a `memtrace.h:fault_ctx` structure:
+```c
+typedef struct fault_ctx {
+    // maybe have separate <pre:regs> and <post:regs>
+    regs_t *r;              // registers for fault (16 general + cpsr)
+                            // sufficient for <switchto>.
+    uint32_t pc;            // same as <pre:r->regs[15]>.  won't 
+                            // be the same for <post>
 
-What is success:
-  1. The few tests in `tests-memtrace` pass. 
+    // the following are the same for pre/post.
+    uint32_t addr;          // memory address of fault.
+    unsigned nbytes;        // number of bytes of access [note: you'll need
+                            // to implement this calculation]
+    unsigned load_p:1;      // access = load (=1), or store (=0).
+} fault_ctx_t;
+```
+This structure provides:
+  - `r`: a pointer to the current fault regs.
+  - `pc`: the initial fault pc (note the fault regs pc value `r->regs[15]`
+    will differ in post since that gets called after the instruction.
+  - `addr`: the memory address of the fault.
+  - `nbytes`: the size of the access.  NOTE: for right now we always pass 4, 
+     but this is not correct.   A good extension is to make it not so stupid.
+  - `load_p`: whether it was a load (`load_p=1`) or store (`load_p=0`).
+
+#### A simple example
+
+To understand the interface, the easiest thing is to look at the couple
+of tests in `tests-memtrace`.    Here's one easy one:
+```c
+static int trace_handler(void *data, fault_ctx_t *f) {
+    // increment fault count
+    int *cnt = data;
+    *cnt += 1;
+
+    output("\t%d: FAULT: pc=%x, addr=%x, nbytes=%d, load=%d\n",
+                    *cnt,
+                    f->pc,
+                    f->addr,
+                    f->nbytes,
+                    f->load_p);
+    return MEMTRACE_OK;
+}
+
+void notmain(void) {
+    // initialize tracing (also VM and exceptions).
+    int cnt = 0;
+    memtrace_init(&cnt, trace_handler, 0, dom_trap);
+    memtrace_yap_off(); // turn off tracing
+
+    volatile uint32_t *u = kmalloc(sizeof *u);
+    trace("about to turn on tracing: expect 1 store, 1 load\n");
+    memtrace_trap_enable();
+        *u = 1;
+        *u;
+    memtrace_trap_disable();
+}
+```
+
+When you run this will print:
+```
+TRACE:notmain:about to turn on tracing: expect 1 store, 1 load
+	1: FAULT: pc=0x80e0, addr=0x104000, nbytes=4, load=0
+	2: FAULT: pc=0x80e4, addr=0x104000, nbytes=4, load=1
+DONE!!!
+```
+
 
 ------------------------------------------------------------------------
 #### Extension: compute the actual number of bytes accessed.
@@ -301,6 +360,7 @@ BCM memory better.  You may need to put these in domain 0 since we map
 device memory (BCM) using 16MB memory supersections and the arm1176 doc
 states supersections have a domain 0.  (Note, I haven't tested if this
 is true for pinned mappings or only true for page tables.)
+
 ------------------------------------------------------------------------
 #### Extension: fancier device memory checker
 

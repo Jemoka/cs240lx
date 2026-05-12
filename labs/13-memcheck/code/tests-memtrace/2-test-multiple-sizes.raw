@@ -1,0 +1,55 @@
+FOUND: </dev/ttyUSB0>
+opened tty port </dev/ttyUSB0>.
+pi-install: tty-usb=</dev/ttyUSB0> program=<./tests-memtrace/2-test-multiple-sizes.bin> about to boot
+TRACE:simple_boot: sending 31356 bytes, crc32=4646aeb
+waiting for a start
+putting code
+bootloader: Done.
+listening on ttyusb=</dev/ttyUSB0>
+about to write to byte:0x104000
+pc=0x8140: domain fault on addr=0x104000, nbytes=1 load=0
+	1: memtrace: pc=0x8140, addr=0x104000, nbytes=1, load=0
+fault pc=0x8140, fault addr=0x104000
+about to write to 16-bits:0x104008
+pc=0x8154: domain fault on addr=0x104008, nbytes=2 load=0
+	2: memtrace: pc=0x8154, addr=0x104008, nbytes=2, load=0
+fault pc=0x8154, fault addr=0x104008
+about to write to 32-bits:0x104010
+pc=0x8168: domain fault on addr=0x104010, nbytes=4 load=0
+	3: memtrace: pc=0x8168, addr=0x104010, nbytes=4, load=0
+fault pc=0x8168, fault addr=0x104010
+about to write to 64-bits:0x104010
+pc=0x8180: domain fault on addr=0x104018, nbytes=8 load=0
+	4: memtrace: pc=0x8180, addr=0x104018, nbytes=8, load=0
+fault pc=0x8180, fault addr=0x104018
+about to write 24 bytes
+pc=0xbefc: domain fault on addr=0x104020, nbytes=4 load=0
+	5: memtrace: pc=0xbefc, addr=0x104020, nbytes=4, load=0
+fault pc=0xbefc, fault addr=0x104020
+pc=0xbf00: domain fault on addr=0x104024, nbytes=4 load=0
+	6: memtrace: pc=0xbf00, addr=0x104024, nbytes=4, load=0
+fault pc=0xbf00, fault addr=0x104024
+pc=0xbefc: domain fault on addr=0x104028, nbytes=4 load=0
+	7: memtrace: pc=0xbefc, addr=0x104028, nbytes=4, load=0
+fault pc=0xbefc, fault addr=0x104028
+pc=0xbf00: domain fault on addr=0x10402c, nbytes=4 load=0
+	8: memtrace: pc=0xbf00, addr=0x10402c, nbytes=4, load=0
+fault pc=0xbf00, fault addr=0x10402c
+pc=0xbefc: domain fault on addr=0x104030, nbytes=4 load=0
+	9: memtrace: pc=0xbefc, addr=0x104030, nbytes=4, load=0
+fault pc=0xbefc, fault addr=0x104030
+pc=0xbf00: domain fault on addr=0x104034, nbytes=4 load=0
+	10: memtrace: pc=0xbf00, addr=0x104034, nbytes=4, load=0
+fault pc=0xbf00, fault addr=0x104034
+pc=0x80c4: domain fault on addr=0x104020, nbytes=16 load=0
+	11: memtrace: pc=0x80c4, addr=0x104020, nbytes=16, load=0
+fault pc=0x80c4, fault addr=0x104020
+pc=0x80cc: domain fault on addr=0x104030, nbytes=8 load=0
+	12: memtrace: pc=0x80cc, addr=0x104030, nbytes=8, load=0
+fault pc=0x80cc, fault addr=0x104030
+TRACE:notmain:SUCCESS: total faults = 12
+DONE!!!
+
+Saw done
+
+bootloader: pi exited.  cleaning up
