@@ -1,0 +1,18 @@
+FOUND: </dev/ttyUSB0>
+opened tty port </dev/ttyUSB0>.
+pi-install: tty-usb=</dev/ttyUSB0> program=<./tests-memtrace/3-test-struct.bin> about to boot
+TRACE:simple_boot: sending 31036 bytes, crc32=459a6668
+waiting for a start
+putting code
+bootloader: Done.
+listening on ttyusb=</dev/ttyUSB0>
+about to write 16 bytes
+	1: memtrace: pc=0x80f4, addr=0x104000, nbytes=16, load=0
+about to write 12 bytes
+	2: memtrace: pc=0x810c, addr=0x104010, nbytes=12, load=0
+TRACE:notmain:SUCCESS: total faults = 2
+DONE!!!
+
+Saw done
+
+bootloader: pi exited.  cleaning up

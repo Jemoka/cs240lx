@@ -1,0 +1,27 @@
+FOUND: </dev/ttyUSB0>
+opened tty port </dev/ttyUSB0>.
+pi-install: tty-usb=</dev/ttyUSB0> program=<./tests-memtrace/0-test-basic.bin> about to boot
+TRACE:simple_boot: sending 31292 bytes, crc32=6eee916d
+waiting for a start
+putting code
+bootloader: Done.
+listening on ttyusb=</dev/ttyUSB0>
+TRACE:notmain:about to turn on tracing
+	1: memtrace: pc=0xbefc, addr=0x104000, nbytes=4, load=0
+TRACE:foo:about to write to 0x104000
+	2: memtrace: pc=0x80c0, addr=0x104000, nbytes=4, load=1
+	3: memtrace: pc=0x80cc, addr=0x104000, nbytes=4, load=0
+	4: memtrace: pc=0x80d0, addr=0x104000, nbytes=4, load=1
+	5: memtrace: pc=0x80d8, addr=0x104000, nbytes=4, load=0
+	6: memtrace: pc=0x80dc, addr=0x104000, nbytes=4, load=1
+	7: memtrace: pc=0x80e4, addr=0x104000, nbytes=4, load=0
+	8: memtrace: pc=0x80e8, addr=0x104000, nbytes=4, load=1
+	9: memtrace: pc=0x80f0, addr=0x104000, nbytes=4, load=0
+	10: memtrace: pc=0x80f4, addr=0x104000, nbytes=4, load=1
+TRACE:foo:done writing to 0x104000: value=0x4040404
+TRACE:notmain:trace faults = 10
+DONE!!!
+
+Saw done
+
+bootloader: pi exited.  cleaning up

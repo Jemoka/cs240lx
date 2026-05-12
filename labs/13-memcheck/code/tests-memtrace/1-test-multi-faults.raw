@@ -1,0 +1,16 @@
+FOUND: </dev/ttyUSB0>
+opened tty port </dev/ttyUSB0>.
+pi-install: tty-usb=</dev/ttyUSB0> program=<./tests-memtrace/1-test-multi-faults.bin> about to boot
+TRACE:simple_boot: sending 31228 bytes, crc32=2a03cd17
+waiting for a start
+putting code
+bootloader: Done.
+listening on ttyusb=</dev/ttyUSB0>
+TRACE:notmain:memcheck tracing
+TRACE:notmain:about to trace: expect 33792 faults
+TRACE:notmain:SUCCESS: total faults = 33792
+DONE!!!
+
+Saw done
+
+bootloader: pi exited.  cleaning up
