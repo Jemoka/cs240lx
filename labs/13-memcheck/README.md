@@ -1,112 +1,62 @@
-## Memcheck trap II: the system.
-
-### Clarifications
-
-NOTE: 
-  - You *do not* have to textually match the error messages for
-    Part 2 (the purify checker).   If you do, it's great for us for
-    grading, but you just have to get the type of operation (load,
-    store), and where the error was (before or after the block and by
-    how many bytes).
-
-### Overview
-
+## Memcheck
 
 Last time we did an ad hoc memory trapping hack so you could grab
 all loads and stores using domain tricks and watchpoint faults.
 
 This lab we'll:
-
   1. Clean last lab's code up and use it to build a simple little
      memory tracing system (`memtrace.c`) that can run different client
      checkers on memory operations.
-
   2. Write a simple checker (`checker-purify.c`) that runs on this
      system and flags whens a load or store references outside of 
      blocks of memory allocated using a slightly modified version
      of your checking allocator.
-
   3. Slightly tweak your ckalloc.c so that it works with (1) and (2).
 
-Checkoff:
-  - With your `memtrace.c` and `ckalloc.c` you pass the tests with
-    `staff-purify-checker.o`.
+Basic idea for memcheck-ing: On each trapping heap access: 
+  1. Lookup the trapping address using the new `ckalloc` routine
+     `ck_get_containing_blk`.
+  2. If the address is in an allocated block: great, continue.
+  3. If the address is not in an allocated block: flag an error
+     using the ckalloc meta data to make the error more informative.
 
-  - With your own `purify-checker.c`: you flag the same errors in
-    the purify tests though perhaps not with text identical error formats.
+Checkoff:
+  1. With your `memtrace.c` and `ckalloc.c` you pass the tests with
+    `staff-purify-checker.o`.
+  2. With your own `purify-checker.c`: you flag the same errors in
+     the purify tests though perhaps not with text identical error formats.
+  3. You write a couple cute tests.
+  4. Ideally you have shadow memory and can detect uninitialized loads.
+     I'm still writing this up, so we may well make this an extension.
 
 ------------------------------------------------------------------------
-### Part 1.  write `code/memtrace.c`
+### Part 1.  Make sure your `code/memtrace.c`  passes
 
-You'll wrap up your code from  last lab into a simple memory tracing
-system.  The interface is in `code/memtrace.h`. It has two main actions:
-(1) initialization (`memtrace_init`) and (2) turning trapping on
-(`memtrace_trap_enable`) and off (`memtrace_trap_disable`).
+After making sure the staff code passes the tests, copy your `memtrace.c`
+over from last time and make sure the tests pass --- it will make things
+easier.
 
-The initialization routine:
+As part of this, you'll have to figure out how many bytes an instruction
+loads or stores.  We checked in a `mem-nbytes.h` you can use to (1)
+partially disassemble the faulting instruction and (2) get the number
+of bytes encoded.
 ```
-    void memtrace_init( void *data,
-        memtrace_fn_t pre,
-        memtrace_fn_t post,
-        unsigned trap_dom);
+    unsigned nbytes = inst_nbytes(GET32(pc));
 ```
 
-Takes:
-  - `data`: a pointer to data that gets passed to client handlers
-    `pre` and `post`.
-  - `pre`: called when a memory instruction traps, before running the
-     instruction.
-  - `post`: called when a memory instruction traps, after running the
-     instruction.
-  - `trap_dom`: the domain id associated with all trapping memory.
-
-At least one of `pre` and `post` should be defined.  For today, this 
-routine calls the code to initialize the virtual memory system.
-The handlers are called with a `memtrace.h:fault_ctx` structure
-that takes provides:
-  - `r`: a pointer to the current fault regs.
-  - `pc`: the initial fault pc (note the fault regs pc value `r->regs[15]`
-    will differ in post since that gets called after the instruction.
-  - `addr`: the memory address of the fault.
-  - `nbytes`: the size of the access.  NOTE: for right now we always pass 4, 
-     but this is not correct.   A good extension is to make it not so stupid.
-  - `load_p`: whether it was a load (`load_p=1`) or store (`load_p=0`).
-
-All of this information is in your last lab (except nbytes).
-
-Big picture:
-  - For today, `memtrace_init` sets up virtual memory by calling
-    `sbrk-trap.c:sbrk_init`.    This isn't how we'd to it for real since
-    it makes things hard to compose, but keeps today more simple.
-
-  - `sbrk_init` calls the same VM code as we used last lab
-    (`vm_map_everything`).  `vm_map_everything` allocates a 1MB heap
-    with its own private domain id (so we can easily trap accesses to it).
-
-    `sbrk_init` also allocates a second 1MB used by its trivial 
-    non-trapping heap allocator (`notrap_alloc`).  
-
-    The only interesting thing about these two heaps is that there is
-    a 1MB unmapped zone between them so overflows from the regular heap
-    don't get into our non-trapping heap easily.
-
-  - Extension: If you want to use shadow memory, the easiest thing is to
-    map another 1MB (using `memmap-default.c:mb_map`) so you can add a
-    constant offset to heap addresses to get their associated shadow.
-
-    Alternatively you could cap the main heap size and devote an
-    equivalant amount of memory from the non-trapping heap to it.
-
-To understand the interface, the easiest thing is to look at the couple
-of tests in `tests-memtrace`.
-
-What is success:
-  1. The few tests in `tests-memtrace` pass. 
-  2. The tests `tests-purify` should pass when using `staff-ckalloc.o`
-     and `staff-checker-purify.o`.
+You can also show off your knowledge from earlier in the quarter and
+write your own version.  It's interesting given the number of different
+load/store instructions ARMv6 has.
 
 ------------------------------------------------------------------------
 ### Part 2.  write `code/checker-purify.c` 
+
+NOTE: 
+  - It will make it easier, but you do not *do not* have to textually
+    match the error messages for Part 2 (the purify checker).   If you do,
+    it's great for us for grading, but you just have to get the type of
+    operation (load, store), and where the error was (before or after
+    the block and by how many bytes).
 
 Now that you have memory tracing, you can write your memory checker.
 On each trapping load and store, you will look up the trapped address
@@ -119,11 +69,9 @@ client requests it.
 A bit lower level:
   1. Register a `pre` `handler with `memtrace.c` (since we want the
      handler to run before the memory operation completes).
-
   2. On every load and store, look up the provided address using  your
      `ckalloc.c:ck_ptr_is_alloced` routine.  If this works, the access
      is legal: return.
-
   3. If the address is not legal, you should call the new routine
      `ck_get_containing_blk`.  It looks through the free and allocated
      lists for any block that has this address in either its header,
@@ -171,22 +119,6 @@ should pass all the tests as is.
 You now have a simple, clean, kernel level memory corruption checker.
 Very, very few people can say the same.
 
-------------------------------------------------------------------------
-#### Extension: compute the actual number of bytes accessed.
-
-The biggest limit of the current code is that it doesn't correctly
-compute how many bytes an instruction accesses.  For this you'll parse
-the machine instruction and determine how many bytes it accesses.
-You should write some test code that shows that you do this correctly.
-
-(If you are blocked on this I do have a header for it.)
-
--------------------------------------------------------------------------------
-#### Extension: replace a bunch of our `.o` files.
-
-We use a bunch of code from old labs.  You should already have versions,
-so can start dropping in yours instead of ours.
-
 -------------------------------------------------------------------------------
 #### Extension: add simple shadow to `check-purify.c`
 
@@ -210,6 +142,12 @@ to keep things easy.  There are three parts to this:
 
 Measure how much things get sped up.  (For the slow test it should
 be significant).
+
+-------------------------------------------------------------------------------
+#### Extension: replace a bunch of our `.o` files.
+
+We use a bunch of code from old labs.  You should already have versions,
+so can start dropping in yours instead of ours.
 
 ------------------------------------------------------------------------
 #### Extension: simple device memory checker.
