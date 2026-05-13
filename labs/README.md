@@ -42,11 +42,11 @@ Labs:
      the lab 10 (PMU) to write a addressable light array driver.
    - [12-memtrace](12-memtrace): use domain protection and 
      debugging hardware to automatically trap every memory access.
-
-Possible labs, many more TBA (note: these aren't checked in yet):
-   - [12-memcheck-trap-II](12-memcheck-trap-II): use the memory tracer
+   - [13-memcheck](13-memcheck): use the memory tracer
      you built and your debug allocator to make a simple purify-style 
      memory checker in a couple hundred lines of code.
+
+Possible labs, many more TBA (note: these aren't checked in yet):
    - [14-stepper-motor](14-stepper-motor):  write a driver for
      the A4988 board and use it to drive a nema 17 stepper motor.  You
      can use this to build stuff all the way from robots to music.
