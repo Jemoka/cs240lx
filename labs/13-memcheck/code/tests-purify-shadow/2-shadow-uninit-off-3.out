@@ -1,0 +1,3 @@
+TRACE:notmain:uninitialized load of byte-3 of a 4-byte load
+TRACE:notmain:about to read uninit 
+TRACE:notmain:should have caught uninit before now!
