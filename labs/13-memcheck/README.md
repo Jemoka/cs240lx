@@ -20,6 +20,7 @@ Basic idea for memcheck-ing: On each trapping heap access:
   3. If the address is not in an allocated block: flag an error
      using the ckalloc meta data to make the error more informative.
 
+
 Checkoff:
   1. With your `memtrace.c` and `ckalloc.c` you pass the tests with
     `staff-purify-checker.o`.
@@ -30,7 +31,30 @@ Checkoff:
      I'm still writing this up, so we may well make this an extension.
 
 ------------------------------------------------------------------------
+### Background: trapping vs dynamic binary instrumentation
+
+Most dynamic analysis tools --- Valgrind, Pin, Purify ---  use dynamic
+binary rewriting, which makes building them 1000 to 10,000x more
+complicated.
+
+You can glimpse this complexity by glancing at the directory
+`0-example-valgrind`, which contains the `lackey` tool Valgrind provides
+as the simplest "hello world" tool you can write.  It doesn't check
+anything, but at 900 lines it (should be) larger than your entire system
+for today's lab --- memory tracing, purify, etc.  And that is before you
+throw in the enormous complexity of the Valgrind system itself (roughly
+1M+ lines of extremely tricky low-level code).
+
+As a bonus, your code will run on kernel code.  Doing the same with
+Valgrind and most such systems is NFW.
+
+------------------------------------------------------------------------
 ### Part 1.  Make sure your `code/memtrace.c`  passes
+
+NOTE:
+  - You might get a different number of faults for test 2.  I believe
+    this is b/c of compiler variation in how many stores that test
+    produces.  Just do a "make emit" for that one test.
 
 After making sure the staff code passes the tests, copy your `memtrace.c`
 over from last time and make sure the tests pass --- it will make things
