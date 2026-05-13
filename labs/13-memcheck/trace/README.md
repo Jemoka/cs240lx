@@ -1,0 +1,40 @@
+heeeeloooooo max and joseph and perhaps other TAs?
+
+so I didn't in fact manage to sleep on this flight UA23, no the least of which someone fainted in the back of the plane and then they had to light everything up with EMERGENCY LIGHTS (they were, I think, fine?) and then wake everyone up to ask if there's a doctor on board.
+
+heh.
+
+but this also means I managed to DANIEL MODE (kinda, mostly the memory stuff, the exception stuff uses ALL OF the staff objects, (which, I believe is allowed, not using it is an extension, and heh my 140e stuff is in balloon and I don't really want to clone it since unitedwifi.com.))
+
+```makefile
+STAFF_OBJS += $(O)/staff-kmalloc.o
+STAFF_OBJS += $(O)/interrupts-vec-asm.o
+STAFF_OBJS += $(O)/staff-pinned-vm.o
+STAFF_OBJS += $(O)/staff-mmu-asm.o
+STAFF_OBJS += $(O)/staff-mmu.o
+STAFF_OBJS += $(O)/staff-watchpoint.o
+STAFF_OBJS += $(O)/staff-armv6-except.o
+STAFF_OBJS += $(O)/staff-breakpoint.o
+STAFF_OBJS += $(O)/staff-switchto-asm.o
+STAFF_OBJS += $(O)/staff-full-except.o
+STAFF_OBJS += $(O)/staff-full-except-asm.o
+STAFF_OBJS += $(O)/map-user-to-staff-fn.o
+```
+
+hopefully this is ok^
+
+But! the allocator and redzone stuff is DANIEL mode, the memory trace stuff (and the exception vectors, although its basically identical to Dawson's)
+
+# todo
+I can also just check off next week but this is funny. You can clone this and run---
+
+```bash
+make 
+```
+
+in this folder and it will build my `./tests`, which are handwritten but should basically match the tests by Dawson in spirit. `0-*` tests memtrace, and `1-*` tests segfaulting behavior, and `gcalloc-status-tests.c` tests my gcalloc walk for distance.
+
+# heh
+can I at least get a minor extension for doing it on a plane?
+
+if not at least I got the same day thing :p ૮ ˶ᵔ ᵕ ᵔ˶ ა (<- i don't have hampsters, but at least, i have a kowmoji of a hampestr)
