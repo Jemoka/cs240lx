@@ -52,6 +52,10 @@ and see how clear you can make it.
 -----------------------------------------------------------------------
 ### Part 0: wire up the stepper 
 
+<p align="center">
+  <img src="images/a4988_pinout.png" width="450" />
+</p>
+
 Wire up the board and the stepper using Alex's [PRELAB](PRELAB.md).
 One non-essential difference is that the PRELAB uses a nema 23 motor
 and we have nema 17.
