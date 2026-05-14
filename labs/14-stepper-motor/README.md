@@ -20,12 +20,34 @@ but you can skip all that stuff:
   - [a4988 stepper tutorial 1](https://lastminuteengineers.com/a4988-stepper-motor-driver-arduino-tutorial/)
   - [a4988 stepper tutorial 2](https://howtomechatronics.com/tutorials/arduino/stepper-motors-and-arduino-the-ultimate-guide/)
 
+NOTES: 2026:
+  - I bought really cheap ebay motors, which had a weird connector
+    I had to cut off, so you'll have to splice some jumper wires to
+    them.  We have electrical tape, and even heat shrink tubing if
+    you want to clean them up.
+  - I also bought very cheap A4988's.  Half of them require you
+    connect both sleep and reset to 3v3 or it won't do anything.
+    The other half just require a loopback.
+  - It can be hard to see the spindle flat --- so its worth using
+    electricdal tape on it.  
+  - As yet another electrical tape hack: For the accel extension Alex
+    suggests, you can tape your pi to the motor housing and see if 
+    you can make it self-level.
+
 ##### Checkoff.
 
 What to do:
   1. You can reliably rotate the stepper (Part 1).
   2. You do a "reasonble" amount of the optional hacks --- this would be
      a single one that you develop thoroughly, or just a few quick ones.
+
+As a very cool demo, check out Toby's Guns and Roses rendition [LX 2022]
+-- he used a tupperware bin to amplify and two steppers:
+  - [images/toby-gnr.mp4](toby-gnr.mp4)
+
+We do have multiple motors (and larger ones) so if you have talent and
+time, you can use three motors (one for lows, one for mids, one for highs)
+and see how clear you can make it.
 
 -----------------------------------------------------------------------
 ### Part 0: wire up the stepper 
@@ -41,8 +63,7 @@ the current limiter discussed in the tutorials above.  (I didn't do this,
 but we should.)
 
 After wiring everything up, you should be able to run the given test
-program from Alex which plays the USA anthem (sardonically appropriate
-given the current idiots pushing for nuclear war):
+program from Alex which plays the USA anthem:
 
     % my-install staff-binary/stepper_test.bin 
 
@@ -101,71 +122,6 @@ Note that losing steps error doesn't come from going too slow but too
 fast, so given a constant speed error that just makes you go more slowly
 is ok.
 
------------------------------------------------------------------------
-### Option: build a stepper UART (2024)
-
-Use the motor to transmit using a very low baud rate.  Use the adc+mic
-from lab 8 to read the stepper noise.  You'll want to figure out the
-midpoint for the level reading --- above this is a 1, below is a 0.
-
-The easiest way to build seems to be using threads where you yield
-from one to the other in the delay.  You may want to oversample (e.g.,
-read multiple per period) and perhaps discard values that are "too high"
-in case there is a burst of ambient noise.
-
-You should be able to take code from previous labs (e.g., the IR lab:
-`3-ir-bootloader`) for threading where one thread does a send and the
-other does a receive.
-
-
-There's other ways to do things, but some suggestions:
- 1. You have two pi's so can jump right to sending and receiving,
-    but it's easiest to develop everything using a loopback setup
-    where you have one thread receiving, one for sending, and you call
-    `rpi_wait()` or `rpi_yield()` to yield from one to the other while
-    they are delayed waiting for time to pass or for input.  Since we
-    have cooperative threads and one CPU we interleave by doing a
-    yield whenever we are doing a busy wait (as you immediately expect:
-    its easy to forget a yield!  So it's useful to write a checker ---
-    possible extension!).  We rely on the package being round robin to
-    schedule everything appropriately.
-
-    Alternatively we could interleave using interrupts.  Or, with less
-    state explosion: by interleaving calls to run-to-completion routines
-    rather than doing a thread yield.  (We may explore this later.)
-
- 2. Measuring the ambient sound when the stepper is turning compared to 
-    not.  I'd be really crude and have the mic right by the stepper and
-    make sure the microphone level is different enough that you can
-    reliably get a 0 or 1.  An easy approach is to compute a running
-    average and then oversample on the receiver.  Given this you should
-    be able to send a 0 or 1 for your software UART code.
-
- 3. If you want to get hella fancy, you can run an FFT on the stepper
-    output and transmit data by causing it to send different frequencies
-    that are far enough away that you get clean results.    You'd probably
-    want to learn the different rates that give you different frequencies
-    using loopback.  
-
-    Sameer did this approach with speakers for his final 140e project
-    so it's worth talking to him for cheat codes.
-
-    I'd start with as slow as possible do you don't need to do ramp up
-    or slow down --- if you push things and need to do a ramp-up or
-    slow-down the frequencies will not be the same as the target and
-    they will likely alias with other target frequencies.
-
-Given some simple experimentation you should hopefully (I haven't finished
-mine!) be able to have a cool software uart that transmits bits using
-the motor.
-
------------------------------------------------------------------------
-### Option: learn notes.
-
-Use the stepper to make a note at a given frequency.  Pick this up with
-the adc+mic and do an fft to get the frequency.   Similar to the stepper
-UART except we need to be accurate about the frequency. Hopefully Parthiv
-can show us how to do this accurately!
 
 -----------------------------------------------------------------------
 ### Option: acceleration.
@@ -336,3 +292,68 @@ Ideas:
     stepper plays a note. If you lift a key, the stepper stops playing the
     note. How do deal with the situation where multiple keys are pressed?
 
+-----------------------------------------------------------------------
+### Option: build a stepper UART (2024)
+
+Use the motor to transmit using a very low baud rate.  Use the adc+mic
+from lab 8 to read the stepper noise.  You'll want to figure out the
+midpoint for the level reading --- above this is a 1, below is a 0.
+
+The easiest way to build seems to be using threads where you yield
+from one to the other in the delay.  You may want to oversample (e.g.,
+read multiple per period) and perhaps discard values that are "too high"
+in case there is a burst of ambient noise.
+
+You should be able to take code from previous labs (e.g., the IR lab:
+`3-ir-bootloader`) for threading where one thread does a send and the
+other does a receive.
+
+
+There's other ways to do things, but some suggestions:
+ 1. You have two pi's so can jump right to sending and receiving,
+    but it's easiest to develop everything using a loopback setup
+    where you have one thread receiving, one for sending, and you call
+    `rpi_wait()` or `rpi_yield()` to yield from one to the other while
+    they are delayed waiting for time to pass or for input.  Since we
+    have cooperative threads and one CPU we interleave by doing a
+    yield whenever we are doing a busy wait (as you immediately expect:
+    its easy to forget a yield!  So it's useful to write a checker ---
+    possible extension!).  We rely on the package being round robin to
+    schedule everything appropriately.
+
+    Alternatively we could interleave using interrupts.  Or, with less
+    state explosion: by interleaving calls to run-to-completion routines
+    rather than doing a thread yield.  (We may explore this later.)
+
+ 2. Measuring the ambient sound when the stepper is turning compared to 
+    not.  I'd be really crude and have the mic right by the stepper and
+    make sure the microphone level is different enough that you can
+    reliably get a 0 or 1.  An easy approach is to compute a running
+    average and then oversample on the receiver.  Given this you should
+    be able to send a 0 or 1 for your software UART code.
+
+ 3. If you want to get hella fancy, you can run an FFT on the stepper
+    output and transmit data by causing it to send different frequencies
+    that are far enough away that you get clean results.    You'd probably
+    want to learn the different rates that give you different frequencies
+    using loopback.  
+
+    Sameer did this approach with speakers for his final 140e project
+    so it's worth talking to him for cheat codes.
+
+    I'd start with as slow as possible do you don't need to do ramp up
+    or slow down --- if you push things and need to do a ramp-up or
+    slow-down the frequencies will not be the same as the target and
+    they will likely alias with other target frequencies.
+
+Given some simple experimentation you should hopefully (I haven't finished
+mine!) be able to have a cool software uart that transmits bits using
+the motor.
+
+-----------------------------------------------------------------------
+### Option: learn notes.
+
+Use the stepper to make a note at a given frequency.  Pick this up with
+the adc+mic and do an fft to get the frequency.   Similar to the stepper
+UART except we need to be accurate about the frequency. Hopefully Parthiv
+can show us how to do this accurately!
