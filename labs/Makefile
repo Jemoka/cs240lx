@@ -9,7 +9,10 @@ SUBDIRS += 7-imu-i2c
 SUBDIRS += 8-i2c
 SUBDIRS += 9-profiler
 SUBDIRS += 10-pmu
-#SUBDIRS += 11-memcheck-trap
+SUBDIRS += 11-ws2812b
+SUBDIRS += 12-memtrace
+SUBDIRS += 13-memcheck
+SUBDIRS += 14-stepper-motor  
 #SUBDIRS += 12-memcheck-trap-II
 #SUBDIRS += 13-ws2812b
 
