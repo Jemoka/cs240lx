@@ -34,13 +34,14 @@ static uint32_t trap_access = 0;
 static uint32_t no_trap_access = 0;
 
 static int trap_is_on_p(void) {
-    todo("return 1 if trapping on: use domain_access_ctrl_get");
+    uint32_t val = domain_access_ctrl_get();
+    return (val & trap_access) != trap_access;
 }
 static void trap_on(void) {
-    todo("turn trapping on: use domain_access_ctrl_set");
+    domain_access_ctrl_set(trap_access);
 }
 static void trap_off(void) {
-    todo("turn trapping off: use domain_access_ctrl_set");
+    domain_access_ctrl_set(no_trap_access);
 }
 
 // turn memtracing on: wrapper with extra error checking.
@@ -68,14 +69,56 @@ static inline unsigned inst_nbytes(uint32_t inst) {
 }
 
 static void data_fault(regs_t *r) {
+    // b4-43 [140e pinned mem]
+    uint32_t reason     = data_abort_reason();
+    // b4-44 [140e pinned mem]
+    uint32_t fault_addr = data_abort_addr();
+
+
     // sanity check that we still at SUPER
     //   - should make it so we can run at user level.
     if(mode_get(r->regs[16]) != SUPER_MODE)
         panic("got a fault not at SUPER level?\n");
 
+
+    if(reason == DOMAIN_SECTION_FAULT) {
+        trap_off();
+        // cheeky: works because pinned is mirrored is
+        // identity mapped.
+        watchpt_on_ptr((void *) fault_addr);
+
+        uint32_t instr = get32((void *) r->regs[15]);
+        fault_ctx_t ctx = fault_ctx_mk(r, fault_addr, 4, (instr & (1 << 20)) != 0);
+        if(pre)
+            pre(data, &ctx);
+
+        // decode *pc to figure out if load/store and record that too.
+        uint32_t instr = get32((void *) e->pc);
+        e->load_p = (instr & (1 << 20)) != 0;
+    } else if (watchpt_fault_p()) {
+        watchpt_off(fault_addr);
+
+
+        *((unsigned*) data) += 1;
+
+
+        // write down post regs
+        memtrace_event *e = &memtrace_buf->events[memtrace_buf->n];
+        memtrace_buf->n = (memtrace_buf->n + 1) % MEMTRACE_FAULT_MAX;
+        e->regs_post = *r;
+
+        /* uint32_t pc = watchpt_fault_pc(); */
+        /* if(pc == (uint32_t)PUT32) { */
+        /*     /\* trace("PUT32 fault at %x\n", fault_addr); *\/ */
+        /* } else if(pc == (uint32_t)GET32) { */
+        /*     trace("GET32 fault at %x\n", fault_addr); */
+        /* } */
+        memtrace_start();
+    }
+
     // after a domain fault: call <pre>.  
     // after a watchpoint fault: call <post>.
-    todo("handle the fault!");
+    /* todo("handle the fault!"); */
 
     // drain printk to avoid the "can tx" race in UART.
     while(!uart_can_put8())
@@ -104,7 +147,29 @@ void memtrace_init(
     data = data_h;
     assert(trap_dom < 16);
 
-    todo("do any additional setup you need");
+    // set up trap domains access registers
+    /* The purpose of the fields D15-D0 in the register is to define the access permissions for each one of */
+    /* the 16 domains. These domains can be either sections, large pages or small pages of memory: */
+    /* b00 = No access, reset value. Any access generates a domain fault. */
+    /* b01 = Client. Accesses are checked against the access permission bits in the TLB entry. */
+    /* b10 = Reserved. Any access generates a domain fault. */
+    /* b11 = Manager. Accesses are not checked against the access permission bits in the TLB entry, so a */
+    /* permission fault cannot be generated. */
+    // for the trap regime
+    // we set the trap domain to no access, and the rest to client.
+    trap_access = ~(3 << (2*trap_dom));
+    
+    // for the non-trap regime, we set all domains to client.
+    no_trap_access = 0x55555555;
+
+    // setup checkers
+    pre = pre_h;
+    post = post_h;
+    // and data
+    data = data_h;
+    
+
+    /* todo("do any additional setup you need"); */
 
     // XXX: what's the right way to handle SS exceptions at the same time?
     full_except_install(0);
