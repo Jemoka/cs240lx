@@ -27,8 +27,13 @@ Checkoff:
   2. With your own `purify-checker.c`: you flag the same errors in
      the purify tests though perhaps not with text identical error formats.
   3. You write a couple cute tests.
-  4. Ideally you have shadow memory and can detect uninitialized loads.
-     I'm still writing this up, so we may well make this an extension.
+
+Ideal Extension:
+  - You have shadow memory and can detect uninitialized loads.
+  - Even better you make memtrace *fast*.  Right now its
+    a few hundred times slower than running without tracing.  You can
+    massively improve this with some relatively straightforward
+    optimizations.
 
 ------------------------------------------------------------------------
 ### Background: trapping vs dynamic binary instrumentation
@@ -143,26 +148,52 @@ should pass all the tests as is.
 You now have a simple, clean, kernel level memory corruption checker.
 Very, very few people can say the same.
 
--------------------------------------------------------------------------------
+------------------------------------------------------------------------
 #### Extension: add simple shadow to `check-purify.c`
 
-Here you'll do a simple shadow memory.  We'll just allocate a single 4-byte word
-to keep things easy.  There are three parts to this:
+Here you'll do a simple shadow memory.  There's different ways to
+do this, but a simple way:
+  1. For each byte of heap memory, we'll have a byte of shadow memory
+     holding its state.  I had three states: illegal (value=0),
+     initialized (value=1) and uninitialized (value=2).  Since 
+     shadow memory was initialized to 0, everything is illegal
+     by default.
+  2. Setting up shadow memory:  The easiest hack is to just use
+     the second half of the heap for shadow memory.
 
-  1. For each byte of heap memory, we'll have a byte of shadow memory holding
-     its state.  I put the shadow memory in the second half of the heap
-     Create and map this during your own time initialization.
+     However, it's usually safer to keep tool memory seperate from the
+     client memory since the latter probably has bugs (that is why we
+     are checking it!).  To do that, you can use the `vm_map_seg` routine
+     (see `sbrk-trap.c` for an example) to map a different MB segment.
 
-  2. In `purify_alloc`, turn checking off so the shadow memory can be
-     written, mark its shadow memory as `ALLOCATED`, and then turn
-     checking back off.
+     In any case:  you setup shadow memory during your one-time
+     purify initialization.
+  3. Allocating memory: In `purify_alloc`, turn trapping off so the
+     shadow memory can be written, mark its shadow memory as `UNINIT`,
+     and then turn checking back on.
+  4. Checking memory access:  
+      - On loads or stores, if any accessed byte's shadow memory 
+        state is "illegal" report an error as before.  
+      - On stores: set the shadow state to "initialized".
+      - On loads: if any loaded byte's shadow state is "uninitialized"
+        report an error (this is a new error).
+      - If all of these checks pass, there is no error: return.
+        Note: this will be faster than doing a `ckalloc` lookup,
+        so the common-case of no error will be faster, assuming
+        your code is written reasonably.
+  5. In `purify_free` turn off trapping, free the block using
+     `ckfree`, then turn trapping back on.
 
-     How this is used: The exception handler will check if the memory
-     being read or written to is `ALLOCATED` and give errors for
-     everything else.  It needs to be a system call since eventually we
-     will be protecting the shadow memory with its own domain id.
+Suggestions:
+  1. I would make a copy of your `checker-purify.c` as 
+     `checker-purify-shadow.c` so that you don't break working
+     code.
+  2. You should make your new shadow version able to turn
+     shadow checking off an on easily.
+  3. I put the shadow check before the regular checks so it
+     is minimally disturbs working code.
 
-  3. In `purify_free` mark the state as `FREED`.
+There are some tests in `tests-purify-shadow`.
 
 Measure how much things get sped up.  (For the slow test it should
 be significant).

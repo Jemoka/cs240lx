@@ -1,0 +1,2 @@
+TRACE:notmain:should detect memory overflow at 1 byte past block end
+TRACE:notmain:DONE: 8 array takes  cycles
