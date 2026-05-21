@@ -1,9 +1,12 @@
 ## Using an I2S to make an acoustically reactive display.
 
 PRELAB: these are crucial, make sure you read several times:
+  - [INMP441 microphone](./docs/inmp441-datasheet.pdf).  NOTE: the 
+    original lab was for a different mic, so hopefully things have
+    been updated.
   - BCM2835 I2S hardware: [BCM2835-i2s.annot.pdf](./docs/BCM2835-i2s.annot.pdf).
   - BCM2835 Clock hardware: [BCM2835-audio-clocks.pdf](./docs/BCM2835-Audio-clocks.pdf).
-  - [INMP441 microphone](./docs/inmp441-datasheet.pdf)
+  - [I2S clock errata](https://www.elinux.org/BCM2835_datasheet_errata#p119_I2S_clock)
 
 
 If you want additoinal insight, the `./docs` directory also has:
@@ -41,6 +44,16 @@ The tl;dr on what to do:
         until BUSY=0 (page 107).
      2. Set DIVI=6, DIVF=3288, and MASH=1 (see the discussion below) to
         scale the (this is clock 1 from page 105).
+
+---------------------------------------------------------------
+### 1. How to configure the SPH0645LM4H-B I2S microphone.
+
+    - p10: "The microphones have zero output for the first 2 SCK clock
+      cycles (85ms with SCK at 3.072 MHz) following power-up."
+
+    - p11: "The output data word length is 24 bits per channel. The
+      INMP441 must always have 64 clock cycles for every stereo data-word
+      ( f_SCK = 64 × f_WS )."
 
 ---------------------------------------------------------------
 ### 1. How to configure the SPH0645LM4H-B I2S microphone.
