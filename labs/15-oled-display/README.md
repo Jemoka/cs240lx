@@ -17,10 +17,7 @@ Easy way to tell which you have:
       - `sh1106-0-fill-screen.bin`
       - `ssd1306-0-fill-screen.bin`
   - You will hopefully see a square for one of them.
-  - If not: 
-    1. Make sure you power cycle after each attempt;
-    2. Don't hook right to the pi pins (GPIO 2 and GPIO 3) since 
-       it appears this revision leaves those disconnected.
+  - If not: Make sure you power cycle after each attempt;
 
 These tiny displays are ubuitious and extremely similar, so it's probably
 worth doing both!
