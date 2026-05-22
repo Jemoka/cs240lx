@@ -2,8 +2,8 @@
 
 
 <p float="left">
-  <img src="images/ssd-top.jpg" width="330" />
-  <img src="images/ssd-side.jpg" width="330" />
+  <img src="images/ssd-top.jpg" width="230" />
+  <img src="images/ssd-side.jpg" width="230" />
 </p>
 
 
