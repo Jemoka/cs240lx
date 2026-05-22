@@ -5,8 +5,7 @@
   <img src="images/ssd-side.jpg" width="230" />
 </p>
 
-
-Irene likes displays so much she made two different labs!
+Irene (340lx'25) likes displays so much she made two different labs!
   - [ssd1306-display](./ssd1306-display): these are in the 
     smaller rounded corner boxes.
   - [sh1106-display](./sh1106-display/): these are in the larger
