@@ -1,5 +1,12 @@
 ### Oled displays  (Irene Geng)
 
+
+<p float="left">
+  <img src="images/ssd-top.jpg" width="330" />
+  <img src="images/ssd-side.jpg" width="330" />
+</p>
+
+
 Irene likes displays so much she made two different labs!
   - [ssd1306-display](./ssd1306-display): these are in the 
     smaller rounded corner boxes.
