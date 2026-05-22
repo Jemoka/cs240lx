@@ -33,3 +33,42 @@ If you bit-bang your i2c you can do many of them at once.  A great
 extension is having 6 or more making a larger paned display with
 interesting animations (e.g., a box rotating and flying between them
 tends to get attention :).
+
+### Checkoff
+
+Pretty simple checkoff:
+  1. Draw a moving vertical line
+  2. Draw a moving horizontal line
+  3. Do something cute!  Bouncing ball, smiley face that opens and
+     closes mouth, spinning wire frame.  Note: This probably will
+     superceded(1) and (2).
+
+### Supplemental datasheets
+
+Given how confusing the original datastheet is, as an experiment over
+winter break I was experimenting with making quick start datasheets
+that in theory were better (cross referencing across multiple LLMs).
+For what its worth, two of them:
+  - [docs/SSD1306-supplemental-1.md](docs/SSD1306-supplemental-1.md)
+  - [docs/SSD1306-supplemental-2.md](docs/SSD1306-supplemental-2.md)
+
+They seemed better at explaining concepts and quick start, but haven't
+been heavily tested.  The suggested blank does work:
+```c
+void notmain(void) {
+    // Initialize I2C with some settling time
+    delay_ms(100);
+    i2c_init_clk_div(1500);
+    delay_ms(100);
+
+    // Step 2: Send minimal initialization (bare minimum)
+    uint8_t init[] = {
+        0x00,        // Control byte: command stream
+        0xAE,        // Display OFF
+        0x8D, 0x14,  // Enable charge pump (CRITICAL!)
+        0xAF,        // Display ON
+        0xA5         // Ignore RAM, all pixels ON (test mode)
+    };
+    i2c_write(0x3C, init, sizeof(init));
+}
+```
