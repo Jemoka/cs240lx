@@ -1,8 +1,10 @@
 ### Oled displays  (Irene Geng)
 
+<p align="center">
 <p float="center">
   <img src="images/ssd-top.jpg" width="230" />
   <img src="images/ssd-side.jpg" width="230" />
+</p>
 </p>
 
 Irene (340lx'25) likes displays so much she made two different labs!
