@@ -1,0 +1,12 @@
+TRACE:notmain:we expect no error
+TRACE:notmain:going to increment x=<0x104000> again with lock
+TRACE:notmain:going to increment x=<0x104000> again with lock
+TRACE:notmain:going to increment x=<0x104000> again with lock
+TRACE:notmain:going to increment x=<0x104000> again with lock
+TRACE:notmain:going to increment x=<0x104000> again with lock
+TRACE:notmain:going to increment x=<0x104000> again with lock
+TRACE:notmain:going to increment x=<0x104000> again with lock
+TRACE:notmain:going to increment x=<0x104000> again with lock
+TRACE:notmain:going to increment x=<0x104000> again with lock
+TRACE:notmain:going to increment x=<0x104000> again with lock
+TRACE:notmain:success!!

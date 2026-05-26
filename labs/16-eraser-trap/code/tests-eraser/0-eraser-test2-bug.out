@@ -1,0 +1,5 @@
+TRACE:notmain:should be virgin: addr=0x104000, state=<VIRGIN>
+TRACE:notmain:--------------------------------------------------
+TRACE:notmain:expect a store error at pc=0x803c, addr=0x104000
+TRACE:notmain:--------------------------------------------------
+ERROR:ERASER:tid=1:store error at pc=, addr=0x104000: lockset empty!

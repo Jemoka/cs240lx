@@ -1,0 +1,2 @@
+TRACE:notmain:check that we are running at in superuser mode
+TRACE:notmain:SUCCESS: asserts passed

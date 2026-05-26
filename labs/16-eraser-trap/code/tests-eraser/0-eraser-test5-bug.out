@@ -1,0 +1,4 @@
+TRACE:notmain:inconsistent lock, multiple threads should fail
+TRACE:notmain:-----------------------------------------------
+TRACE:notmain:should be an error next access (no lock held):
+ERROR:ERASER:tid=3:store error at pc=, addr=0x104000: lockset empty!

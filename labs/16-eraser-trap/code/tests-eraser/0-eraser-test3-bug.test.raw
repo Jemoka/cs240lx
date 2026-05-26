@@ -1,0 +1,9 @@
+FOUND: </dev/ttyUSB0>
+opened tty port </dev/ttyUSB0>.
+pi-install: tty-usb=</dev/ttyUSB0> program=<./tests-eraser/0-eraser-test3-bug.bin> about to boot
+TRACE:simple_boot: sending 34428 bytes, crc32=8fb4959e
+waiting for a start
+putting code
+BOOT_SUCCESS mismatch: expected 9999aaaa, got 43415254
+main----------------------Rxe  or px4140RR:d:toero ap=x803,ar=000: ocketmty
+E!simple-boot.c:ck_eq32:30:PANIC:pi-boot failed
