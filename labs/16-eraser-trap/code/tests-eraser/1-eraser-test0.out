@@ -1,3 +1,0 @@
-TRACE:notmain:should *not* have an error below b/c no other thread touches
-TRACE:notmain:should be exclusive: addr=0x104000, state=<VIRGIN>
-tests-eraser/1-eraser-test0.c:notmain:24:ERROR: expected state <EXCLUSIVE>, have <VIRGIN>
