@@ -1,0 +1,3 @@
+TRACE:notmain:should *not* have an error below b/c no other thread touches
+TRACE:notmain:should be exclusive: addr=0x104000, state=<EXCLUSIVE>
+TRACE:notmain:SUCCESS: load passed!

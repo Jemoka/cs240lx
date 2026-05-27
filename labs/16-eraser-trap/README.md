@@ -163,11 +163,11 @@ The tests are in `tests/part2-tests*.c`:
   - `0-eraser-test5-bug.c` (error) --- similar, an error at the end.
 
 -----------------------------------------------------------------------------
-#### Part 3: Shared-exclusive Eraser
+#### Part 1: Shared-exclusive Eraser
 
-The previous Eraser is pretty useless.  Let us at least track if a second
-thread is touching memory before giving an error!     We'll use the
-shared exclusive state as described in the paper for this.
+The previous Eraser is pretty useless.  Let us at least track if a
+second thread is touching memory before giving an error!     We'll use
+the shared exclusive state as described in the paper for this.
 
 Basic idea: 
   1. Threads often allocate memory and initialize it without holding
@@ -197,21 +197,20 @@ When a thread T1 touches word `w` in a the `SH_VIRGIN` state:
    5. If the lockset in `SH_SHARED_MOD` becomes empty (even on the initial 
       transition), give an error.
 
-The tests will be added to `tests-eraser/3-eraser-tests*.c` --- the
-first two tests are the same as above; if I was more clever we'd have
-a way to flip their behaivor:
+The tests are interleaved unfortunately:
+  - `1-eraser-test0.c` (no error) --- tests for the initialization
+    hack: 
+     1. Only one thread accesses memory (`x.state=SH_EXLUSIVE`) and:
+     2. Doesn't hold a lock (`x.lockset={}`)  but
+     3. There is no error b/c a second thread does not touch it.
+  - `1-eraser-test1-bug.c` (error) ---  second thread acceses with l1 (ok),
+    but then accesses again with l2 (`x.lockset = {}`) so: error.
+  - `1-eraser-test2.c` (no error): tests that you handle initialization where:
+     1.`x` gets initialized (`x.state = SH_EXLUSIVE`)
+     2. a second thread accesses `x` holding lock `l2` (`x.lockset=l2`).
+  - `1-eraser-test3-bug.c` (error) ---  second thread does a write to
+    `x` without holding a lock.
 
-  - `3-eraser-test2-nobug.c` (no error) --- identical test as `part2-test3.c` but here we
-    will *not* have an error because a second thread does not touch it.
-  - `part2-test4.c` (no error) --- identical test as `part2-test4.c` but here
-    we will not have an error because a second thread does not touch it.
-
-  - `part2-test5.c` (error) --- similar, but the unlocked read is done
-    by a second thread so you should flag an error.
-  - `part2-test6.c` (no error) --- similar, but has the memory allocation 
-    outside of the lock and only has one thread, so no error.
-
-  - There are a bunch of other tests now, too --- just look at them :)
 
 Note that the state structure only has a small 16-bit wod to track the
 lockset (or in our case the single held lock).   I did this so that the
@@ -242,17 +241,25 @@ small integer that can be stored in a state:
 As always, you are adults, so are welcome to do something less basic.
 
 --------------------------------------------------------------------------------------
-#### Part 4: Shared Eraser
+#### Part 2: Shared Eraser
 
 Now add the shared state.  Recall this state was used to handle the common
 case where one thread intialized data, and then subsequent accesses by
-all other threads were read-only and thus did not use locks.  Tests are in
-`part4-tests*.c`.  The basic idea: 
+all other threads were read-only and thus did not use locks.
+
+The basic idea: 
   1. On write in Exclusive you'll transition to Shared Modified (as above).
   2. On read in Exclusive you'll now transition to Shared.  In shared you keep
      refining the lockset, but do not give an error if it becomes empty.  If 
      a write happens, you transition to Shared Modified and (as always) immediately
      give an error for an empty lockset.
+
+There's only one test:
+  - `2-eraser-test0.c` (no error) --- multiple threads read (load)
+    a variable (`x`) without a lock, but since there are no stores
+    after initialization you should not give an error.  You should use
+    `SH_EXLUSIVE` for exclusive access (initialization) and `SH_SHARED`
+    when the memory is in a read-only state.
 
 --------------------------------------------------------------------------------------
 #### Find other race bugs.
