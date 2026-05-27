@@ -155,7 +155,7 @@ For `eraser.h`:
   - `eraser_set_thread_id` would be called by the thread's package to tell
     your tool it switched threads.
 
-The tests are in `tests/part2-tests*.c`:
+The tests are in `tests/0-tests*.c`:
   - `0-eraser-test0.c` (no error) --- basic non-eraser test that makes sure
     you can still run memory tracing.
   - `0-eraser-test1.c` (no error) --- basic eraser test that makes sure
@@ -201,7 +201,7 @@ When a thread T1 touches word `w` in a the `SH_VIRGIN` state:
    5. If the lockset in `SH_SHARED_MOD` becomes empty (even on the initial 
       transition), give an error.
 
-The tests are interleaved unfortunately:
+Some simple tests:
   - `1-eraser-test0.c` (no error) --- tests for the initialization
     hack: 
      1. Only one thread accesses memory (`x.state=SH_EXLUSIVE`) and:
