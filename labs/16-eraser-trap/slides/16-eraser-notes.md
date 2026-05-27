@@ -82,15 +82,13 @@ Intuition:
    when mem accessed in past.
 
 Transition table:
- - initial:     th.lockset = {}
- - initial:     mem.lockset = {all}
- - lock(l1):    th.lockset U= {l1}
- - unlock(l1):  th.lockset -= {l1}
+ - th=fork(...): th.lockset = {}
+ - mem=malloc(): mem.lockset = {all}
+ - lock(l1):     th.lockset U= {l1}
+ - unlock(l1):   th.lockset -= {l1}
  - load [mem], or store [mem]: 
     - mem.lockset = th.lockset \inter mem.lockset
     - if mem.lockset = {} error
- - free(mem):   mem.lockset = {}
-
 
 ---
 ## Example
