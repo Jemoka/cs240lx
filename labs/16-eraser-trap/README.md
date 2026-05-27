@@ -1,3 +1,7 @@
+## Errata
+
+Note: do a pull b/c the tests changed (for the better).
+
 ## Eraser
 
 Today we're going to build a simple version of eraser (see the `docs`
