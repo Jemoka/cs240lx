@@ -48,12 +48,15 @@ Labs:
    - [14-stepper-motor](14-stepper-motor):  write a driver for
      the A4988 board and use it to drive a nema 17 stepper motor.  You
      can use this to build stuff all the way from robots to music.
-
-Since spring quarter is rough, we'll provide some extra optional labs
-that people can do instead of a final project.
-
-   - [opt-keyboard-4x4](dev-keyboard-4x4): quick lab for a standard 4x4 
-     (16 button) matrix keyboard.  
+   - [15-oled-display](15-oled-display/):  we do Irene Geng's oled lab
+     that she made for 340lx'25.  Cheap, ubiquitous, useful.  Fun, too!
+   - [16-eraser-trap](16-eraser-trap/): Eraser is a famous race
+     detection tool that uses binary-rewriting to instrumenting every
+     load and store and flagging if a thread accessed the memory with
+     inconsistent set of locks (its *lockset*).  Doing binary rewriting
+     is hard.  By using debugging hardware and fast traps we can build
+     a version in a few hundred lines of code: simply trap on every load
+     and store and implement the lockset algorithm.
 
 <p align="center">
   <img src="lab-memes/coding.jpg" width="350" />

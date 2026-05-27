@@ -1,0 +1,2 @@
+TRACE:notmain:consistent lock, multiple threads should pass
+TRACE:notmain:SUCCESS: stores passed

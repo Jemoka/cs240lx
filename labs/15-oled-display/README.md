@@ -1,10 +1,21 @@
 ### Oled displays  (Irene Geng)
 
-Irene likes displays so much she made two different labs!
+<p float="center">
+  <img src="images/ssd-top.jpg" width="230" />
+  <img src="images/ssd-side.jpg" width="230" />
+</p>
+
+Irene (340lx'25) likes displays so much she made two different labs!
   - [ssd1306-display](./ssd1306-display): these are in the 
     smaller rounded corner boxes.
   - [sh1106-display](./sh1106-display/): these are in the larger
     rectangular boxes.
+
+These tiny displays are ubuitious and extremely similar, so it's probably
+worth doing both!
+
+
+### Post-script (Dawson)
 
 Easy way to tell which you have:
   - Hook up the wires into the Parthiv board in the same header as you used
@@ -19,8 +30,17 @@ Easy way to tell which you have:
   - You will hopefully see a square for one of them.
   - If not: Make sure you power cycle after each attempt;
 
-These tiny displays are ubuitious and extremely similar, so it's probably
-worth doing both!
+### Checkoff
+
+Pretty simple checkoff:
+  1. Draw a moving vertical line
+  2. Draw a moving horizontal line
+  3. Do something cute!  Bouncing ball, smiley face that opens and
+     closes mouth, spinning wire frame.  Note: This probably will
+     superceded(1) and (2).
+
+
+### Overview
 
 Would recommend starting with the SSD1306, as the datasheet
 for the SSD1306 is more well-written.
@@ -33,15 +53,6 @@ If you bit-bang your i2c you can do many of them at once.  A great
 extension is having 6 or more making a larger paned display with
 interesting animations (e.g., a box rotating and flying between them
 tends to get attention :).
-
-### Checkoff
-
-Pretty simple checkoff:
-  1. Draw a moving vertical line
-  2. Draw a moving horizontal line
-  3. Do something cute!  Bouncing ball, smiley face that opens and
-     closes mouth, spinning wire frame.  Note: This probably will
-     superceded(1) and (2).
 
 ### Supplemental datasheets
 
