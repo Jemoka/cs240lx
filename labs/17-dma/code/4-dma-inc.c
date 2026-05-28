@@ -26,7 +26,7 @@ cb_t *stamp_inc8(ctx_t *ctx, bus_t out, bus_t in) {
   //    manipulation, but would recommend using the `ctx_*`
   //    APIs or starting to make your own helpers
   //  - also: highly recommend checking out e.g. <bus_rel_fld>
-  //
+  //  - SRC_ADDR is just 4 bytes in memory
 
   // drop this if you're not using the ctx_* stuff
   cb_t *inc8_first_cb_addr = ctx_here(ctx);

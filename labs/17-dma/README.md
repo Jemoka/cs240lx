@@ -76,6 +76,10 @@ does, as a matter of fact, have an excellent understanding of the `memcpy` opera
 all you need to do to be able to perform computations with DMA is figure out how to index into
 tables with it.
 
+Useful:
+ - Think about how you could use DMA to do these kinds of lookup operations!
+   Under what conditions can DMA let you do these things?
+
 ## Miscellanea
 
 Important things to note:
@@ -174,6 +178,7 @@ Couple things I thought of while writing this up:
  
 ## Acknowledgements
 
- - Some of the code from this lab is from Dawson's 340LX lab last year
+ - Some of the code from this lab is adapted from Dawson's 340LX lab last year (in particular: the
+   section "ACTUAL DMA STRUCTURES" in `dma-impl.h`)
  - `printf.h` and `printf.c` are from https://github.com/mpaland/printf
 
