@@ -1,0 +1,3 @@
+TRACE:notmain:should be EXCLUSIVE: addr=0x104000, state=<EXCLUSIVE>
+TRACE:notmain:should have an error because b/c second thread touches w/o a lock
+PANIC:staff-checker-eraser.c:ls_intersect:206:in shared modified state: empty lockset: pc=0x803c, addr=0x104000

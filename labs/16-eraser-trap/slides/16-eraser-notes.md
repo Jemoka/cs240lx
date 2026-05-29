@@ -37,60 +37,25 @@ Problem:
 Today:
  - use your mem trap to make Eraser in a < 300 lines.
 
-
-
-
----
-## Basic Eraser idea: lockset
-<div style="display: flex;">
-<div style="flex: 1;">
-
-Intuition:
- - th.lockset: the locks a thread holds now.
- - mem.lockset: the intersection of locks held 
-   when mem accessed in past.
-
-</div>
-<div style="flex: 1;">
-
-Transition table:
- - initial:     th.lockset = {}
- - initial:     mem.lockset = {all}
- - lock(l1):    th.lockset U= {l1}
- - unlock(l1):  th.lockset -= {l1}
- - load [mem], or store [mem]: 
-    - mem.lockset = th.lockset \inter mem.lockset
-    - if mem.lockset = {} error
- - free(mem):   mem.lockset = {}
-
-
-</div>
-</div>
-
-
 ---
 ## Basic Eraser idea: lockset
 
   <style scoped>
-  p, li { font-size: 23px; }
+  p, li { font-size: 24px; }
   </style>
 
-
-Intuition:
+Definitions:
  - th.lockset: the locks a thread holds now.
- - mem.lockset: the intersection of locks held 
-   when mem accessed in past.
+ - mem.lockset: intersection of locks held when mem accessed in past.
 
 Transition table:
- - initial:     th.lockset = {}
- - initial:     mem.lockset = {all}
- - lock(l1):    th.lockset U= {l1}
- - unlock(l1):  th.lockset -= {l1}
+ - th=fork(...):  th.lockset = {}
+ - mem=malloc():  mem.lockset = {all}
+ - lock(l1):      th.lockset U= {l1}
+ - unlock(l1):    th.lockset -= {l1}
  - load [mem], or store [mem]: 
     - mem.lockset = th.lockset \inter mem.lockset
     - if mem.lockset = {} error
- - free(mem):   mem.lockset = {}
-
 
 ---
 ## Example
