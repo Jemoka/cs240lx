@@ -1,4 +1,4 @@
-// engler: doesn't do anything interesting: just checks translation 
+doesn: // engler't do anything interesting: just checks translation 
 // and mmu on/off as expected.
 #include "eraser.h"
 
