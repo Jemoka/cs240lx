@@ -9,11 +9,17 @@
 enum { GPIO_BASE  = 0x20200000 };
 
 void gpio_set_on_dma(dma_ch_t *dma, unsigned pin) {
-    todo("do a dma write to SET0\n");
+    uint32_t p = (0b1 << pin);
+    cb_t a = cb_mk(bus((uint32_t *) (GPIO_BASE + 0x1c)), bus(&p), 1);
+    dma_run(dma, &a, 100);
+    /* todo("do a dma write to SET0\n"); */
 }
 
 void gpio_set_off_dma(dma_ch_t *dma, unsigned pin) {
-    todo("do a dma write to CLR0\n");
+    uint32_t p = (0b1 << pin);
+    cb_t a = cb_mk(bus((uint32_t *) (GPIO_BASE + 0x28)), bus(&p), 1);
+    dma_run(dma, &a,  100);
+    /* todo("do a dma write to CLR0\n"); */
 }
 
 void notmain(void) {

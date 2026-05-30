@@ -4,17 +4,36 @@
 
 enum { GPIO_BASE  = 0x20200000 };
 
+#define KB(x) ((x)*1024)
+
 void gpio_set_on_dma(dma_ch_t *dma, unsigned pin) {
-    todo("do a dma write to SET0\n");
+    uint8_t p = (0b1 << pin);
+    cb_t a = cb_mk(bus((uint32_t *) (GPIO_BASE + 0x1c)), bus(&p), 1);
+    dma_run(dma, &a, 100);
+    /* todo("do a dma write to SET0\n"); */
 }
 
 void gpio_set_off_dma(dma_ch_t *dma, unsigned pin) {
-    todo("do a dma write to CLR0\n");
+    uint8_t p = (0b1 << pin);
+    cb_t a = cb_mk(bus((uint32_t *) (GPIO_BASE + 0x28)), bus(&p), 1);
+    dma_run(dma, &a,  100);
+
+    /* todo("do a dma write to CLR0\n"); */
 }
 
 void dma_delay_ms(dma_ch_t *dma, unsigned ms) {
-    // Use your work from part 2
-    todo("implement me!\n");
+    uint8_t offset = ms/23;
+
+    void *ptr = kmalloc(KB(offset));
+
+    uint32_t cycle_count_start = timer_get_usec();
+    cb_t a = cb_mk(bus(ptr), bus(ptr), KB(offset));
+    a.TI |= (0x1f << WAITS_OFFSET);
+    a.TI |= (0b1 << 26);
+    dma_run(dma, &a, 1000000000);
+    uint32_t cycle_count_stop = timer_get_usec();
+
+    printk("delay_ms: requested %d ms, actual %d ms\n", ms, (cycle_count_stop - cycle_count_start));
 }
 
 void notmain(void) {

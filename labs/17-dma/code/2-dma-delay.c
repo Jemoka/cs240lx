@@ -45,7 +45,15 @@ static uint32_t measure_block_exec_time(dma_ch_t *dma, uint32_t byte_count) {
     //
     // This function should return the number of cycles it takes the chain to
     // run.
-    todo("implement\n");
+    volatile uint8_t bytes[byte_count];
+    volatile uint8_t dest[byte_count];
+
+    uint32_t cycle_count_start = cycle_cnt_read();
+    cb_t a = cb_mk(bus(&dest), bus(&bytes), byte_count);
+    dma_run(dma, &a, 1000);
+    uint32_t cycle_count_stop = cycle_cnt_read();
+
+    return cycle_count_stop - cycle_count_start;
 }
 
 void notmain(void) {
