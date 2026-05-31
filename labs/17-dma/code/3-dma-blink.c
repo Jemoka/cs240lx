@@ -22,18 +22,17 @@ void gpio_set_off_dma(dma_ch_t *dma, unsigned pin) {
 }
 
 void dma_delay_ms(dma_ch_t *dma, unsigned ms) {
-    uint8_t offset = ms/23;
-
-    void *ptr = kmalloc(KB(offset));
+    uint32_t offset = 1000000;
+    static volatile uint8_t one = 1;
 
     uint32_t cycle_count_start = timer_get_usec();
-    cb_t a = cb_mk(bus(ptr), bus(ptr), KB(offset));
-    a.TI |= (0x1f << WAITS_OFFSET);
-    a.TI |= (0b1 << 26);
+    cb_t a = cb_mk(bus(&one), bus(&one), KB(offset));
+    /* a.TI |= (0x1f << WAITS_OFFSET); */
+    a.TI = 0;
     dma_run(dma, &a, 1000000000);
     uint32_t cycle_count_stop = timer_get_usec();
 
-    printk("delay_ms: requested %d ms, actual %d ms\n", ms, (cycle_count_stop - cycle_count_start));
+    printk("delay_ms: requested %d ms, actual %d ms\n", ms, (cycle_count_stop - cycle_count_start)/1000);
 }
 
 void notmain(void) {

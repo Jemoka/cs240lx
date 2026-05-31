@@ -9,6 +9,12 @@
 #define KB(x) ((x)*1024)
 
 enum { GPIO_BASE  = 0x20200000 };
+
+
+static volatile _Alignas(256) uint8_t EXAMPLE[256];
+static volatile _Alignas(256) uint8_t RECURSE[256];
+
+
 cb_t *stamp_dec8(ctx_t *ctx, bus_t out, bus_t in) {
   // Force EXAMPLE to be 256-byte-aligned.
   static volatile _Alignas(256) uint8_t EXAMPLE[256];
@@ -23,38 +29,48 @@ cb_t *stamp_dec8(ctx_t *ctx, bus_t out, bus_t in) {
   inc8_first_cb_addr->DST_ADDR = bus(&(inc_actual_block_addr->SRC_ADDR));
   return inc8_first_cb_addr;
 }
-// Feel free to put your own helpers in here :)
+
+static uint32_t p;
 
 cb_t *stamp_blink(ctx_t *ctx, unsigned pin, unsigned delay) {
-    uint32_t offset = 10000;
-    void *ptr = kmalloc(KB(offset));
+    static uint32_t offset = 10000;
+    static volatile uint8_t one = 1;
 
-    uint32_t p = (0b1 << pin);
+    p = (0b1 << pin);
     cb_t *start = ctx_here(ctx);
     ctx_emit(ctx, bus((uint32_t *) (GPIO_BASE + 0x1c)), bus(&p), 1);
-    for (int i = 0; i < 128; i++) {
-        ctx_emit(ctx, bus(ptr), bus(ptr), KB(offset));
-    }
+    cb_t *a = ctx_here(ctx);
+    ctx_emit(ctx, bus(&one), bus(&one), KB(offset));
+    a->TI = 0;
     ctx_emit(ctx, bus((uint32_t *) (GPIO_BASE + 0x28)), bus(&p), 1);
-    /* ctx_emit(ctx, bus((uint32_t *) (0x22)), bus(&p), 1); */
+    a = ctx_here(ctx);
+    ctx_emit(ctx, bus(&one), bus(&one), KB(offset));
+    a->TI = 0;
     return start;
 }
 
 cb_t *dma_blink(ctx_t *ctx, unsigned pin, unsigned delay, bus_t n_times) {
     // NOTE: n_times is a pointer! can't unroll
 
+    static volatile uint8_t o;
+
     volatile static _Alignas(256) uint8_t RECURSE[256];
-    volatile uint8_t o;
 
     // at 0, we jump to nothing; all other values we jump back to the top of the chain
     cb_t *top = ctx_here(ctx);
+
+    static uint32_t zero = 0;
+    bus_t chicken = bus(&zero);
     for (int i = 1; i < 256; i++) {
-        RECURSE[i] = 4;
+        RECURSE[i] = 0;
     }
-    RECURSE[0] = 0;
+    RECURSE[0] = 4;
 
     // blink
     stamp_blink(ctx, pin, delay);
+
+    /* (void) RECURSE; */
+
 
     // subtract 1 from n_timse
     stamp_dec8(ctx, bus(&o), n_times);
@@ -66,16 +82,20 @@ cb_t *dma_blink(ctx_t *ctx, unsigned pin, unsigned delay, bus_t n_times) {
 
     // then copy the jump table entry corresponding to the value of n_times to the NEXT_CB of the last block in the chain
     cb_t *jump = ctx_here(ctx);
-    ctx_emit(ctx, bus(0), bus(&RECURSE), 4);
+    ctx_emit(ctx, bus(0), bus(&RECURSE), 1);
 
     overlay->DST_ADDR = bus(&(jump->SRC_ADDR));
 
     cb_t *dest = ctx_here(ctx);
-    ctx_emit(ctx, dest->NEXT_CB, bus(top), 0); // no-op, used for jumying
+    ctx_emit(ctx, bus(0), bus(&chicken), 0);
+
+    cb_t *tgt = ctx_here(ctx);
+    ctx_emit(ctx, bus(&o), bus(&o), 0);
 
     jump->DST_ADDR = bus(&dest->TXFR_LEN);
+    dest->DST_ADDR = bus(&(tgt->NEXT_CB));
 
-    ctx_end(ctx);
+    tgt->NEXT_CB = bus(top);
 
     // Goal: should be equivalent to the for(i=0;i<N;i++) { on ; delay ; off ; delay;  }
     //
@@ -103,7 +123,7 @@ cb_t *dma_blink(ctx_t *ctx, unsigned pin, unsigned delay, bus_t n_times) {
 
 void dma_delay_ms(dma_ch_t *dma, unsigned ms) {
     uint32_t offset = 10000;
-    void *ptr = kmalloc(KB(offset));
+    void *ptr = kmalloc(0);
 
     uint32_t cycle_count_start = timer_get_usec();
     cb_t a = cb_mk(bus(ptr), bus(ptr), KB(offset));
@@ -134,42 +154,13 @@ void notmain() {
   /* dma_delay_ms(dma, 1000); */
   /* dma_delay_ms(dma, 1000); */
   gpio_set_output(pin);
-  cb_t *program_blink = stamp_blink(&ctx, pin, delay);
-  /* stamp_blink(&ctx, pin, delay); */
-  /* stamp_blink(&ctx, pin, delay); */
-  stamp_blink(&ctx, pin, delay);
-  ctx_end(&ctx);
-  dma_run(dma, program_blink, 1000000000);
-  delay_ms(10000);
-  /* ctx_end(&ctx); */
-  /* stamp_blink(&ctx, pin, delay); */
-  /* stamp_blink(&ctx, pin, delay); */
-  /* stamp_blink(&ctx, pin, delay); */
-  /* stamp_blink(&ctx, pin, delay); */
-  /* stamp_blink(&ctx, pin, delay); */
-  /* stamp_blink(&ctx, pin, delay); */
-  /* stamp_blink(&ctx, pin, delay); */
-  /* stamp_blink(&ctx, pin, delay); */
-  /* stamp_blink(&ctx, pin, delay); */
-  /* stamp_blink(&ctx, pin, delay); */
-  /* stamp_blink(&ctx, pin, delay); */
-  /* stamp_blink(&ctx, pin, delay); */
-  /* stamp_blink(&ctx, pin, delay); */
-  /* stamp_blink(&ctx, pin, delay); */
-  /* stamp_blink(&ctx, pin, delay); */
-  /* stamp_blink(&ctx, pin, delay); */
-  /* stamp_blink(&ctx, pin, delay); */
+  cb_t *program_blink = dma_blink(&ctx, pin, delay, bus(&N));
+  dma_initiate(dma, program_blink);
 
-  /* dma_run(dma, program_blink, 1000000000); */
-
-  printk("done running dma chain\n");
-
-  /* dma_initiate(dma, program_blink); */
-  /* // should take about 5s; round it up to 10 */
-  /* enum { TIMEOUT_MICROS = 10 * 1000 * 1000 }; */
-  /* uint32_t t_start = timer_get_usec(); */
-  /* while(!dma_done(dma)) { */
-  /*   if ((timer_get_usec() - t_start) >= TIMEOUT_MICROS) */
-  /*     panic("dma timed out after %d seconds!\n", TIMEOUT_MICROS / 1000 / 1000); */
-  /* } */
+  enum { TIMEOUT_MICROS = 10 * 1000 * 10000 };
+  uint32_t t_start = timer_get_usec();
+  while(!dma_done(dma)) {
+    if ((timer_get_usec() - t_start) >= TIMEOUT_MICROS)
+      panic("dma timed out after %d seconds!\n", TIMEOUT_MICROS / 1000 / 1000);
+  }
 }
